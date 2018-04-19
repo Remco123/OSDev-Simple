@@ -83,29 +83,6 @@ void printfHex32(uint32_t key)
     printfHex( key & 0xFF);
 }
 
-void printfHexG(Canvas* canv,uint8_t key)
-{
-    static uint8_t x=20;
-
-    char* foo = "00";
-    char* hex = "0123456789ABCDEF";
-    foo[0] = hex[(key >> 4) & 0xF];
-    foo[1] = hex[key & 0xF];
-    
-    Arial ari;
-    ari.DrawTo(canv, foo, 10, x, 5, Color::Create(255, 255, 255));
-    x+= 20;
-}
-
-void printfHex32G(Canvas* canv, uint32_t key)
-{
-    printfHexG(canv,(key >> 24) & 0xFF);
-    printfHexG(canv,(key >> 16) & 0xFF);
-    printfHexG(canv,(key >> 8) & 0xFF);
-    printfHexG(canv, key & 0xFF);
-}
-
-
 class PrintfKeyboardEventHandler : public KeyboardEventHandler
 {
 public:
@@ -164,10 +141,7 @@ extern "C" void callConstructors()
 
 extern "C" void kernelMain(const void* multiboot_structure, uint32_t multiboot_magic)
 {
-    //uint32_t* pixel = (uint32_t*)(fb + mbi->framebuffer_pitch * y + 4 * x);
-
-    //printf("Starting Kernel...\n");
-    printfHex32(multiboot_magic);
+    printf("Starting Kernel...\n");
 
     multiboot_info_t* mbi = (multiboot_info_t*)multiboot_structure;
 
@@ -219,37 +193,19 @@ extern "C" void kernelMain(const void* multiboot_structure, uint32_t multiboot_m
     drvManager.ActivateAll();
     printf("     [DONE]\n");
         
+    //This works here
+    //
     BMPImage bitmap(0, 0);
     bitmap.Load(image_bmp);
     Canvas canvas((void*)mbi->framebuffer_addr, mbi->framebuffer_pitch, (uint32_t)mbi->framebuffer_width, (uint32_t)mbi->framebuffer_height, (uint8_t)mbi->framebuffer_bpp);
     bitmap.DrawTo(&canvas, 50, 50, 300, 300);
-
-    printfHex32G(&canvas, mbi->framebuffer_addr);
-
+    //
 
     printf("Activating Interrupts");
     interrupts.Activate();
     printf("     [DONE]\n");
 
-    //bitmap.DrawTo(gfx, 0, 0, 300, 300);
+    //If i add it here it will crash.
 
-    /*
-    while(1); //Disable fonts
-
-    int lastsec = -1;
-    while(1)
-    {
-        int sec = rtc.GetSecond();
-        if(sec != lastsec)
-        {
-            gfx->DrawFillRect(Color::Create(0, 0, 0), 40, 40, 50, 20);
-            arial.DrawTo(gfx, Convert::itoa(sec), 10, 50, 50, Color::Create(255, 255, 255));
-            lastsec = sec;
-        }
-    }
-    */
-
-    for(;;) {
-        asm("hlt");
-    }
+    while(1);
 }
