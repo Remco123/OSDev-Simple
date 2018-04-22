@@ -18,8 +18,6 @@ uint8_t* Font::GetSupportedSizes()
  
     /* Some operations on arr[] */
     arr[0] = 10;
-    arr[1] = 12;
-    arr[2] = 14;
     
     return arr;
 }

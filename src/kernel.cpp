@@ -94,6 +94,29 @@ public:
     }
 };
 
+class PrintKeyboardGraphicsHandler : public KeyboardEventHandler
+{
+private:
+    Canvas* gfx; //Pointer to the canvas.
+    Arial* font; //Pointer to the font.
+    //ps: pointers are cool!
+public:
+    PrintKeyboardGraphicsHandler(Canvas* canv, Arial* font)
+    {
+        this->gfx = canv;
+        this->font = font;
+    }
+    void OnKeyDown(char c)
+    {
+        static int x = 5;
+
+        char* foo = " ";
+        foo[0] = c;
+        font->DrawTo(gfx, foo, 10, x, 10, Color::Create(255, 255, 255));
+        x+=10;
+    }
+};
+
 class MouseToConsole : public MouseEventHandler
 {
     int8_t x, y;
@@ -145,6 +168,10 @@ extern "C" void kernelMain(const void* multiboot_structure, uint32_t multiboot_m
 
     multiboot_info_t* mbi = (multiboot_info_t*)multiboot_structure;
 
+    //Init the canvas for drawing to the screen.
+    Canvas canvas((void*)mbi->framebuffer_addr, mbi->framebuffer_pitch, (uint32_t)mbi->framebuffer_width, (uint32_t)mbi->framebuffer_height, (uint8_t)mbi->framebuffer_bpp);
+    Arial arial;
+
     printf("Starting gdt");
     GlobalDescriptorTable gdt;
     printf("     [DONE]\n");
@@ -171,7 +198,7 @@ extern "C" void kernelMain(const void* multiboot_structure, uint32_t multiboot_m
     printf("     [DONE]\n");
     
     printf("Loading keyboard ");
-    PrintfKeyboardEventHandler kbhandler;
+    PrintKeyboardGraphicsHandler kbhandler(&canvas, &arial);
     KeyboardDriver keyboard(&interrupts, &kbhandler);
     drvManager.AddDriver(&keyboard);
     printf("     [DONE]\n");
@@ -193,19 +220,13 @@ extern "C" void kernelMain(const void* multiboot_structure, uint32_t multiboot_m
     drvManager.ActivateAll();
     printf("     [DONE]\n");
         
-    //This works here
-    //
-    BMPImage bitmap(0, 0);
-    bitmap.Load(image_bmp);
-    Canvas canvas((void*)mbi->framebuffer_addr, mbi->framebuffer_pitch, (uint32_t)mbi->framebuffer_width, (uint32_t)mbi->framebuffer_height, (uint8_t)mbi->framebuffer_bpp);
-    bitmap.DrawTo(&canvas, 50, 50, 300, 300);
-    //
-
     printf("Activating Interrupts");
     interrupts.Activate();
     printf("     [DONE]\n");
 
-    //If i add it here it will crash.
+    BMPImage bitmap(0, 0);
+    bitmap.Load(image_bmp);
+    bitmap.DrawTo(&canvas, 50, 50, 300, 300);
 
     while(1);
 }
