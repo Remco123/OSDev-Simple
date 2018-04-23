@@ -118,3 +118,11 @@ float Color::GetSaturation()
     }
     return s;
 }   
+
+uint32_t Color::GetARGB()
+{
+    return 0xFF000000 |   //Opacity
+           R << 16 | //B
+           G << 8  | //G
+           B;        //R
+}

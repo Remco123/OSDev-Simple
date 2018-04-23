@@ -11,16 +11,15 @@
 #include <drivers/keyboard.h>
 #include <drivers/mouse.h>
 #include <drivers/rtc.h>
-#include <drivers/serial.h>
 #include <gui/canvas.h>
 #include <gui/color.h>
 #include <gui/font.h>
 #include <gui/image.h>
 #include <gui/bmp.h>
 #include <gui/arial.h>
-
 #include <gui/testimage.h>
 #include <common/convert.h>
+#include <common/memfunc.h>
 
 using namespace myos;
 using namespace myos::common;
@@ -31,39 +30,7 @@ using namespace myos::gui;
 
 void printf(char* str)
 {
-    static uint16_t* VideoMemory = (uint16_t*)0xb8000;
-
-    static uint8_t x=0,y=0;
-
-    for(int i = 0; str[i] != '\0'; ++i)
-    {
-        switch(str[i])
-        {
-            case '\n':
-                x = 0;
-                y++;
-                break;
-            default:
-                VideoMemory[80*y+x] = (VideoMemory[80*y+x] & 0xFF00) | str[i];
-                x++;
-                break;
-        }
-
-        if(x >= 80)
-        {
-            x = 0;
-            y++;
-        }
-
-        if(y >= 25)
-        {
-            for(y = 0; y < 25; y++)
-                for(x = 0; x < 80; x++)
-                    VideoMemory[80*y+x] = (VideoMemory[80*y+x] & 0xFF00) | ' ';
-            x = 0;
-            y = 0;
-        }
-    }
+    //StartupTerminal::AddMessage(str, Color::Create(0, 0, 0));
 }
 
 void printfHex(uint8_t key)
@@ -82,6 +49,7 @@ void printfHex32(uint32_t key)
     printfHex((key >> 8) & 0xFF);
     printfHex( key & 0xFF);
 }
+
 
 class PrintfKeyboardEventHandler : public KeyboardEventHandler
 {
@@ -164,69 +132,52 @@ extern "C" void callConstructors()
 
 extern "C" void kernelMain(const void* multiboot_structure, uint32_t multiboot_magic)
 {
-    printf("Starting Kernel...\n");
-
     multiboot_info_t* mbi = (multiboot_info_t*)multiboot_structure;
 
     //Init the canvas for drawing to the screen.
     Canvas canvas((void*)mbi->framebuffer_addr, mbi->framebuffer_pitch, (uint32_t)mbi->framebuffer_width, (uint32_t)mbi->framebuffer_height, (uint8_t)mbi->framebuffer_bpp);
     Arial arial;
 
-    printf("Starting gdt");
+    printf("Starting gdt\n");
     GlobalDescriptorTable gdt;
     printf("     [DONE]\n");
 
-    printf("Starting Memory Manager");
+    printf("Starting Memory Manager\n");
     uint32_t* memupper = (uint32_t*)(((size_t)multiboot_structure) + 8);
     size_t heap = 10*1024*1024;
     MemoryManager memoryManager(heap, (*memupper)*1024 - heap - 10*1024);
 
-    printf(" Heap: 0x");
-    printfHex32(heap);
-    
-    void* allocated = memoryManager.malloc(1024);
-    printf(" Allocated: 0x");
-    printfHex32((uint32_t)allocated);;
-    printf("     [DONE]\n");
-
-    printf("Starting Interrupts Controller");
+    printf("Starting Interrupts Controller\n");
     InterruptManager interrupts(0x20, &gdt);
-    printf("     [DONE]\n");
-    
-    printf("Starting Driver Controller");
+
+    printf("Starting Driver Controller\n");
     DriverManager drvManager;
-    printf("     [DONE]\n");
     
-    printf("Loading keyboard ");
+    printf("Loading keyboard\n");
     PrintKeyboardGraphicsHandler kbhandler(&canvas, &arial);
     KeyboardDriver keyboard(&interrupts, &kbhandler);
     drvManager.AddDriver(&keyboard);
-    printf("     [DONE]\n");
     
-    printf("Loading mouse ");
+    printf("Loading mouse\n");
     MouseToConsole mousehandler;
     MouseDriver mouse(&interrupts, &mousehandler);
     drvManager.AddDriver(&mouse);
-    printf("     [DONE]\n");
         
-    printf("Starting PCI");
+    printf("Starting PCI\n");
     PeripheralComponentInterconnectController PCIController;
-    printf("     [DONE]\n");
     printf("Loading additional drivers for devices:\n$----------------------------------------$\n");
     PCIController.SelectDrivers(&drvManager, &interrupts);
     printf("$----------------------------------------$\n");
         
-    printf("Activating Drivers");
+    printf("Activating Drivers\n");
     drvManager.ActivateAll();
-    printf("     [DONE]\n");
         
-    printf("Activating Interrupts");
+    printf("Activating Interrupts\n");
     interrupts.Activate();
-    printf("     [DONE]\n");
 
-    BMPImage bitmap(0, 0);
-    bitmap.Load(image_bmp);
-    bitmap.DrawTo(&canvas, 50, 50, 300, 300);
-
-    while(1);
+    while(1)
+    {
+        canvas.Clear();
+        canvas.Clear(Color::Create(0, 0, 255));
+    }
 }

@@ -9,6 +9,7 @@ LDPARAMS = -melf_i386
 objects = obj/loader.o \
           obj/gdt.o \
 		  obj/memorymanagement.o \
+		  obj/common/memfunc.o \
           obj/drivers/driver.o \
           obj/hardwarecommunication/port.o \
           obj/hardwarecommunication/interruptstubs.o \
@@ -17,7 +18,6 @@ objects = obj/loader.o \
           obj/drivers/keyboard.o \
           obj/drivers/mouse.o \
 		  obj/drivers/rtc.o \
-		  obj/drivers/serial.o \
 		  obj/gui/color.o \
 		  obj/gui/canvas.o \
 		  obj/gui/font.o \

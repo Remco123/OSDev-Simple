@@ -50,8 +50,6 @@ void Font::DrawTo(gui::Canvas* canvas, char* str, uint8_t fontSize, uint32_t x, 
                 int Position = 2; //Skip Width and Height
                 //Loop through char pixels
 
-                printf("Width: "); printfHex(data[0]); printf("\n");
-                printf("Height: "); printfHex(data[1]); printf("\n");
                 for(uint32_t w = 0; w < data[0]; w++)
                 {
                     for(uint32_t h = 0; h < data[1]; h++)

@@ -26,6 +26,7 @@ namespace myos
             float GetBrightness();
             float GetHue();
             float GetSaturation();
+            common::uint32_t GetARGB();
         };
     }
 }

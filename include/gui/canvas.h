@@ -2,6 +2,7 @@
 #define __MYOS__GUI__CANVAS_H
 
 #include <common/types.h>
+#include <common/memfunc.h>
 #include <common/math.h>
 #include <drivers/driver.h>
 
@@ -16,11 +17,11 @@ namespace myos
         private:
             void* framebuffer_addr;
             common::uint32_t pitch;
-
+        public:
             common::uint32_t Width;
             common::uint32_t Height;
             common::uint8_t bpp;
-        public:
+
             Canvas(void* framebuffer_addr, common::uint32_t pitch, common::int32_t width, common::uint32_t heigth, common::uint8_t bpp);
             ~Canvas();
 
@@ -40,6 +41,8 @@ namespace myos
             void DrawFillCircle(gui::Color color, int x_center, int y_center, int radius);
             void DrawEllipse(gui::Color color, int x_center, int y_center, int x_radius, int y_radius);
             void FloodFill(int x, int y, gui::Color oldcolor, gui::Color newcolor);
+
+            void* GetFramebufferAddr();
         };
     }
 }

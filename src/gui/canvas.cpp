@@ -22,7 +22,7 @@ void Canvas::SetPixel(common::uint32_t x, common::uint32_t y, gui::Color color)
     where[0] = (uint8_t)(color.B & 255); //Blue
     where[1] = (uint8_t)(color.G & 255); //Green
     where[2] = (uint8_t)(color.R & 255); //Red
-    //where[3] = 255; //Alpha
+    where[3] = 255; //Alpha
 }
 Color Canvas::GetPixel(common::uint32_t x, common::uint32_t y)
 {
@@ -38,24 +38,14 @@ Color Canvas::GetPixel(common::uint32_t x, common::uint32_t y)
 //Common Graphics Functions
 void Canvas::Clear()
 {
-    Color col = Color::Create(0, 0, 0);
-    for(int x = 0; x < this->Width; x++)
-    {
-        for(int y = 0; y < this->Height; y++)
-        {
-            SetPixel(x, y, col);       
-        }   
-    }
+    MemoryFunctions::memset(framebuffer_addr, 0, Width*Height*(bpp/8));
 }
 void Canvas::Clear(gui::Color color)
 {
-    for(int x = 0; x < this->Width; x++)
-    {
-        for(int y = 0; y < this->Height; y++)
-        {
-            SetPixel(x, y, color);       
-        }   
-    }
+    uint32_t fill_color = color.GetARGB();
+       
+    for(uint32_t index = 0; index < Width*Height*4; index++)
+        ((uint32_t*)(framebuffer_addr))[index] = fill_color;
 }
 void Canvas::DrawHorizontalLine(gui::Color color, int dx, int x1, int y1)
 {
@@ -247,4 +237,9 @@ void Canvas::FloodFill(int x, int y, gui::Color oldcolor, gui::Color newcolor)
         FloodFill(x-1,y,oldcolor,newcolor);
         FloodFill(x,y-1,oldcolor,newcolor);
     }
+}
+
+void* Canvas::GetFramebufferAddr()
+{
+    return this->framebuffer_addr;
 }
