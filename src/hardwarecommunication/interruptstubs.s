@@ -1,5 +1,3 @@
-
-
 .set IRQ_BASE, 0x20
 
 .section .text
@@ -11,6 +9,14 @@
 .global _ZN4myos21hardwarecommunication16InterruptManager19HandleException\num\()Ev
 _ZN4myos21hardwarecommunication16InterruptManager19HandleException\num\()Ev:
     movb $\num, (interruptnumber)
+    pushl $0
+    jmp int_bottom
+.endm
+
+.macro HandleExceptionErrCode num
+.global _ZN4myos21hardwarecommunication16InterruptManager19HandleException\num\()Ev
+_ZN4myos21hardwarecommunication16InterruptManager19HandleException\num\()Ev:
+    movb $\num, (interruptnumber)
     jmp int_bottom
 .endm
 
@@ -19,30 +25,31 @@ _ZN4myos21hardwarecommunication16InterruptManager19HandleException\num\()Ev:
 .global _ZN4myos21hardwarecommunication16InterruptManager26HandleInterruptRequest\num\()Ev
 _ZN4myos21hardwarecommunication16InterruptManager26HandleInterruptRequest\num\()Ev:
     movb $\num + IRQ_BASE, (interruptnumber)
+    pushl $0
     jmp int_bottom
 .endm
 
 
-HandleException 0x00
-HandleException 0x01
-HandleException 0x02
-HandleException 0x03
-HandleException 0x04
-HandleException 0x05
-HandleException 0x06
-HandleException 0x07
-HandleException 0x08
-HandleException 0x09
-HandleException 0x0A
-HandleException 0x0B
-HandleException 0x0C
-HandleException 0x0D
-HandleException 0x0E
-HandleException 0x0F
-HandleException 0x10
-HandleException 0x11
-HandleException 0x12
-HandleException 0x13
+HandleException        0x00
+HandleException        0x01
+HandleException        0x02
+HandleException        0x03
+HandleException        0x04
+HandleException        0x05
+HandleException        0x06
+HandleException        0x07
+HandleExceptionErrCode 0x08
+HandleException        0x09
+HandleExceptionErrCode 0x0A
+HandleExceptionErrCode 0x0B
+HandleExceptionErrCode 0x0C
+HandleExceptionErrCode 0x0D
+HandleExceptionErrCode 0x0E
+HandleException        0x0F
+HandleException        0x10
+HandleExceptionErrCode 0x11
+HandleException        0x12
+HandleException        0x13
 
 HandleInterruptRequest 0x00
 HandleInterruptRequest 0x01
@@ -72,7 +79,6 @@ int_bottom:
     pushl %gs
 
     # ring 0 segment register laden
-    #cld
     #mov $0x10, %eax
     #mov %eax, %eds
     #mov %eax, %ees
@@ -80,8 +86,8 @@ int_bottom:
     # C++ Handler aufrufen
     pushl %esp
     push (interruptnumber)
+    cld
     call _ZN4myos21hardwarecommunication16InterruptManager15HandleInterruptEhj
-    add %esp, 6
     mov %eax, %esp # den stack wechseln
 
     # register laden
@@ -90,7 +96,7 @@ int_bottom:
     pop %es
     pop %ds
     popa
-
+    add $4, %esp             # Remove error code
 .global _ZN4myos21hardwarecommunication16InterruptManager15InterruptIgnoreEv
 _ZN4myos21hardwarecommunication16InterruptManager15InterruptIgnoreEv:
 

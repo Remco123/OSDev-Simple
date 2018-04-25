@@ -3,6 +3,7 @@
 using namespace myos;
 using namespace myos::common;
 
+extern "C" void load_gdt(uint8_t *gdt_ptr, uint32_t data_sel, uint32_t code_sel);
 
 GlobalDescriptorTable::GlobalDescriptorTable()
     : nullSegmentSelector(0, 0, 0),
@@ -13,7 +14,7 @@ GlobalDescriptorTable::GlobalDescriptorTable()
     uint32_t i[2];
     i[1] = (uint32_t)this;
     i[0] = sizeof(GlobalDescriptorTable) << 16;
-    asm volatile("lgdt (%0)": :"p" (((uint8_t *) i)+2));
+    load_gdt((((uint8_t *) i)+2), DataSegmentSelector(), CodeSegmentSelector());
 }
 
 GlobalDescriptorTable::~GlobalDescriptorTable()
