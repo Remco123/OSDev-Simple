@@ -12,7 +12,7 @@ using namespace myos::hardwarecommunication;
 
 
 
-void printf(char* str,...);
+void printf(char* str);
 
 /* Input a byte from a port */
 inline unsigned char inportb(unsigned int port)

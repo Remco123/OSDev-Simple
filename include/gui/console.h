@@ -9,8 +9,6 @@
 #include <memorymanagement.h>
 #include <common/memfunc.h>
 
-void printf(char*,...);
-
 namespace myos
 {
     namespace gui
@@ -59,15 +57,19 @@ namespace myos
         private:
             Canvas* screen;
             Font* font;
-            static Console* instance;
+
+            int YOffset = 0;
+            int XOffset = 0;
         public:
-            static void Write(char* msg,...);
-            static void WriteLine(char* msg,...);
-            static char* ReadLine();
+            ConsoleKeyboardEventHandler* keyboard;
+            Console(Canvas* canv, Font* fnt, ConsoleKeyboardEventHandler* kb);
 
             void Write(char* msg,...);
             void WriteLine(char* msg,...);
             char* ReadLine();
+
+            void CheckForScroll();
+            void ScrollDown();
         };
     }
 }

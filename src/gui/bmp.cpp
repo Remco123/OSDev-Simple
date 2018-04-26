@@ -4,7 +4,6 @@ using namespace myos;
 using namespace myos::common;
 using namespace myos::gui;
 
-void printf(char*);
 void printfHex(uint8_t);
 
 BMPImage::BMPImage(uint32_t width, uint32_t height)

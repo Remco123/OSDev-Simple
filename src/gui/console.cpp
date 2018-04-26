@@ -5,18 +5,37 @@ using namespace myos::common;
 using namespace myos::drivers;
 using namespace myos::gui;
 
-Canvas* Console::screen = 0;
-Font* Console::font = 0;
-ConsoleKeyboardEventHandler* Console::keyboard = 0;
-int Console::YOffset = 0; 
-int Console::XOffset = 0;
-
-void Console::Init(Canvas* cnvas, Font* fnt, ConsoleKeyboardEventHandler* kbhandler)
+Console::Console(Canvas* canv, Font* fnt, ConsoleKeyboardEventHandler* kb)
 {
-    Console::screen = cnvas;
-    Console::font = fnt;
-    Console::keyboard = kbhandler;
+    this->screen = canv;
+    this->font = fnt;
+    this->keyboard = kb; 
 }
+
+void Console::Write(char* str,...)
+{    
+    for(int i = 0; str[i] != '\0'; ++i) //Loop though string
+    {
+        char chr = str[i];
+        switch(chr)
+        {
+            case '\n':
+                YOffset += 10; //Add height of space
+                XOffset = 0; //Reset x
+                CheckForScroll();
+                break;
+            default:
+                font->DrawTo(screen, Convert::CharToStr(chr), 10, XOffset, YOffset, Color::Create(0,0,0));
+                XOffset+= this->font->GetCharData(chr,10)[0];
+        }
+    }
+}
+void Console::WriteLine(char* msg,...)
+{
+    Write(msg);
+    Write("\n");
+}
+
 char* Console::ReadLine()
 {
     bool InputDone = false;
@@ -35,19 +54,29 @@ char* Console::ReadLine()
             switch(c)
             {
                 case '\n':
+                #if 0 //Set to 1 to check for empty string
                     if(numChars > 0)
                     {
                         YOffset += 10;
                         XOffset = 0;
                         return result;
                     }
+                #else
+                    YOffset += 10;
+                    XOffset = 0;
+                    return result;
+                #endif
                 case '\b':
                     {
                         if(numChars > 0)
                         {
-                            AddMessage(Convert::CharToStr('\b'));
+                            uint16_t CharWidth = this->font->GetCharData(result[numChars - 1],10)[0];
+                            uint16_t CharHeight = this->font->GetCharData(result[numChars - 1],10)[1];
+                            screen->DrawFillRect(Color::Create(200,200,200), XOffset - CharWidth, YOffset, CharWidth, CharHeight);
+                            
                             result[numChars] = ' ';
                             numChars--;
+                            XOffset -= CharWidth;
                         }
                     }
                     break;
@@ -56,46 +85,43 @@ char* Console::ReadLine()
                         result[numChars] = c;
                         numChars++; 
 
-                        AddMessage(Convert::CharToStr(c));
+                        Write(Convert::CharToStr(c));
                     }
                     break;
             }
         }
     }
 }
-void Console::AddBootMessage(char* msg,...)
-{
-    
-}
-
-void Console::AddMessage(char* msg,...)
-{
-    for(uint8_t i = 0; i < MemoryFunctions::strlen(msg); i++) //Loop though data
+void Console::CheckForScroll()
+{  
+    if(this->screen != 0)
     {
-        char c = msg[i];
-        switch(c)
+        if(YOffset > screen->Height - 20)
         {
-            case '\n':
-                YOffset+=10;
-                XOffset = 0;
-            case '\b':
-            {
-                XOffset -= 8;
-                uint8_t* w_and_h = font->GetCharData(' ', 10);
-                screen->DrawFillRect(Color::Create(0,200,0), XOffset, YOffset, w_and_h[0],w_and_h[1]);
-                break;
-            }
-            default: 
-            {
-                //Draw Char on screen;
-                font->DrawTo(screen, Convert::CharToStr(c), 0, XOffset, YOffset, Color::Create(0,0,0));
-                XOffset += 8;
-                break;
-            }
+            ScrollDown();
+            YOffset -= 10;
         }
     }
+        
 }
-void Console::ProccesMessage(char* msg)
+void Console::ScrollDown()
 {
+    uint32_t color = Color::Create(200, 200, 200).GetARGB();
+    uint32_t* _buffer = (uint32_t*)screen->GetFramebufferAddr();
+    for (int i = 0; i < screen->Height; i++)
+    {
+        for (int m = 0; m < screen->Width; m++)
+        {
+            _buffer[i * screen->Width + m] = _buffer[(i + 10) * screen->Width + m];
+        }
+    }
 
+    for (int i = screen->Height - 10; i < screen->Height; i++)
+    {
+        for (int m = 0; m < screen->Width; m++)
+        {
+            _buffer[i * screen->Width + m] = color;
+
+        }
+    }
 }

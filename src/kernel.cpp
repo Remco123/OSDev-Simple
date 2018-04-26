@@ -30,11 +30,14 @@ using namespace myos::gui;
 
 Canvas* currentCanvas;
 Arial* currentFont;
+Console* console;
 
-void printf(char* str,...)
+void printf(char* str)
 {
-    if(Console::screen != 0) //The console is init
-        Console::AddMessage(str);
+    if(console){
+        console->Write(str);
+    }
+        
 }
 
 void printfHex(uint8_t key)
@@ -77,6 +80,12 @@ public:
     }
 };
 
+int strcmp(const char *s1, const char *s2)
+{
+    while ((*s1 == *s2) && *s1) { ++s1; ++s2; }
+    return ((int) (unsigned char) *s1) - ((int) (unsigned char) *s2);
+}
+
 typedef void (*constructor)();
 extern "C" constructor start_ctors;
 extern "C" constructor end_ctors;
@@ -94,6 +103,9 @@ extern "C" void kernelMain(const void* multiboot_structure, uint32_t multiboot_m
     Canvas canvas((void*)mbi->framebuffer_addr, mbi->framebuffer_pitch, (uint32_t)mbi->framebuffer_width, (uint32_t)mbi->framebuffer_height, (uint8_t)mbi->framebuffer_bpp);
     Arial arial;
     canvas.Clear(Color::Create(200, 200, 200));
+
+    Console cons = Console(&canvas, &arial, 0);
+    console = &cons;
 
     currentCanvas = &canvas;
     currentFont = &arial;
@@ -116,6 +128,8 @@ extern "C" void kernelMain(const void* multiboot_structure, uint32_t multiboot_m
     ConsoleKeyboardEventHandler kbhandler;
     KeyboardDriver keyboard(&interrupts, &kbhandler);
     drvManager.AddDriver(&keyboard);
+
+    cons.keyboard = &kbhandler;
     
     printf("Loading mouse\n");
     MouseEventHandler mousehandler;
@@ -136,12 +150,14 @@ extern "C" void kernelMain(const void* multiboot_structure, uint32_t multiboot_m
 
     arial.DrawTo(&canvas, "Remco OS", 10, canvas.Width/2 - 7*4, canvas.Height/2 - 30, Color::Create(0,0,0));
 
-    CPU::PrintInfo();
-
-    Console::Init(&canvas, &arial, &kbhandler);
-
     while(1)
-     printf(Console::ReadLine());
+    {
+        cons.Write("==> ");
+        char* input = cons.ReadLine();
+        if(strcmp(input, "cpu") == 0)
+            CPU::PrintInfo();
+        cons.CheckForScroll();
+    }
 
 
     while(1);

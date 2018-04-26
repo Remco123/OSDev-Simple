@@ -4,7 +4,6 @@ using namespace myos;
 using namespace myos::gui;
 using namespace myos::common;
 
-void printf(char*);
 void printfHex(uint8_t);
 
 Font::Font(char* name)
