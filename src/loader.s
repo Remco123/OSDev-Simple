@@ -11,7 +11,7 @@
     .long CHECKSUM
     .long 0, 0, 0, 0, 0
     .long 0 # 0 = set graphics mode
-    .long 1024, 768, 32 # Width, height, depth
+    .long 720, 400, 32 # Width, height, depth
 
 
 .section .text

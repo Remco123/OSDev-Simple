@@ -61,7 +61,7 @@ bool PeripheralComponentInterconnectController::DeviceHasFunctions(common::uint1
 }
 
 
-void printf(char* str);
+void printf(char* str,...);
 void printfHex(uint8_t);
 
 void PeripheralComponentInterconnectController::SelectDrivers(DriverManager* driverManager, myos::hardwarecommunication::InterruptManager* interrupts)
@@ -171,7 +171,7 @@ Driver* PeripheralComponentInterconnectController::GetDriver(PeripheralComponent
                     if(driver != 0)
                         new (driver) amd_am79c973(...);
                     */
-                    printf("AMD am79c973 ");
+                    printf("AMD am79c973 \n");
                     break;
             }
             break;
@@ -187,7 +187,7 @@ Driver* PeripheralComponentInterconnectController::GetDriver(PeripheralComponent
             switch(dev.subclass_id)
             {
                 case 0x00: // VGA
-                    printf("VGA ");
+                    printf("VGA \n");
                     break;
             }
             break;

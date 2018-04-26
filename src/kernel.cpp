@@ -1,12 +1,12 @@
 #define CHECK_FLAG(flags,bit)   ((flags) & (1 << (bit)))
 
-
 #include <common/types.h>
 #include <multiboot.h>
 #include <gdt.h>
 #include <memorymanagement.h>
 #include <hardwarecommunication/interrupts.h>
 #include <hardwarecommunication/pci.h>
+#include <hardwarecommunication/cpu.h>
 #include <drivers/driver.h>
 #include <drivers/keyboard.h>
 #include <drivers/mouse.h>
@@ -17,9 +17,9 @@
 #include <gui/image.h>
 #include <gui/bmp.h>
 #include <gui/arial.h>
-#include <gui/testimage.h>
 #include <common/convert.h>
 #include <common/memfunc.h>
+#include <stdarg.h>
 
 using namespace myos;
 using namespace myos::common;
@@ -27,10 +27,14 @@ using namespace myos::drivers;
 using namespace myos::hardwarecommunication;
 using namespace myos::gui;
 
+Canvas* currentCanvas;
+Arial* currentFont;
 
-void printf(char* str)
+void printf(char* str,...)
 {
-    //StartupTerminal::AddMessage(str, Color::Create(0, 0, 0));
+    static int Y = 0;
+    currentFont->DrawTo(currentCanvas, str, 10, 2, Y, Color::Create(0, 0, 0));
+    Y+= 10;
 }
 
 void printfHex(uint8_t key)
@@ -137,10 +141,13 @@ extern "C" void kernelMain(const void* multiboot_structure, uint32_t multiboot_m
     //Init the canvas for drawing to the screen.
     Canvas canvas((void*)mbi->framebuffer_addr, mbi->framebuffer_pitch, (uint32_t)mbi->framebuffer_width, (uint32_t)mbi->framebuffer_height, (uint8_t)mbi->framebuffer_bpp);
     Arial arial;
+    canvas.Clear(Color::Create(200, 200, 200));
+
+    currentCanvas = &canvas;
+    currentFont = &arial;
 
     printf("Starting gdt\n");
     GlobalDescriptorTable gdt;
-    printf("     [DONE]\n");
 
     printf("Starting Memory Manager\n");
     uint32_t* memupper = (uint32_t*)(((size_t)multiboot_structure) + 8);
@@ -165,7 +172,7 @@ extern "C" void kernelMain(const void* multiboot_structure, uint32_t multiboot_m
         
     printf("Starting PCI\n");
     PeripheralComponentInterconnectController PCIController;
-    printf("Loading additional drivers for devices:\n$----------------------------------------$\n");
+    printf("Loading additional drivers for devices:\n"); printf("$----------------------------------------$\n");
     PCIController.SelectDrivers(&drvManager, &interrupts);
     printf("$----------------------------------------$\n");
         
@@ -175,9 +182,7 @@ extern "C" void kernelMain(const void* multiboot_structure, uint32_t multiboot_m
     printf("Activating Interrupts\n");
     interrupts.Activate();
 
-    while(1)
-    {
-        canvas.Clear();
-        canvas.Clear(Color::Create(0, 0, 255));
-    }
+    arial.DrawTo(&canvas, "Remco OS", 10, canvas.Width/2 - 7*4, canvas.Height/2 - 30, Color::Create(0,0,0));
+
+    CPU::PrintInfo();
 }
