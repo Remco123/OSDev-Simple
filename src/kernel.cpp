@@ -7,6 +7,7 @@
 #include <hardwarecommunication/interrupts.h>
 #include <hardwarecommunication/pci.h>
 #include <hardwarecommunication/cpu.h>
+#include <gui/console.h>
 #include <drivers/driver.h>
 #include <drivers/keyboard.h>
 #include <drivers/mouse.h>
@@ -32,9 +33,8 @@ Arial* currentFont;
 
 void printf(char* str,...)
 {
-    static int Y = 0;
-    currentFont->DrawTo(currentCanvas, str, 10, 2, Y, Color::Create(0, 0, 0));
-    Y+= 10;
+    if(Console::screen != 0) //The console is init
+        Console::AddMessage(str);
 }
 
 void printfHex(uint8_t key)
@@ -53,18 +53,6 @@ void printfHex32(uint32_t key)
     printfHex((key >> 8) & 0xFF);
     printfHex( key & 0xFF);
 }
-
-
-class PrintfKeyboardEventHandler : public KeyboardEventHandler
-{
-public:
-    void OnKeyDown(char c)
-    {
-        char* foo = " ";
-        foo[0] = c;
-        printf(foo);
-    }
-};
 
 class PrintKeyboardGraphicsHandler : public KeyboardEventHandler
 {
@@ -87,42 +75,6 @@ public:
         font->DrawTo(gfx, foo, 10, x, 10, Color::Create(255, 255, 255));
         x+=10;
     }
-};
-
-class MouseToConsole : public MouseEventHandler
-{
-    int8_t x, y;
-public:
-    
-    MouseToConsole()
-    {
-        uint16_t* VideoMemory = (uint16_t*)0xb8000;
-        x = 40;
-        y = 12;
-        VideoMemory[80*y+x] = (VideoMemory[80*y+x] & 0x0F00) << 4
-                            | (VideoMemory[80*y+x] & 0xF000) >> 4
-                            | (VideoMemory[80*y+x] & 0x00FF);        
-    }
-    
-    virtual void OnMouseMove(int xoffset, int yoffset)
-    {
-        static uint16_t* VideoMemory = (uint16_t*)0xb8000;
-        VideoMemory[80*y+x] = (VideoMemory[80*y+x] & 0x0F00) << 4
-                            | (VideoMemory[80*y+x] & 0xF000) >> 4
-                            | (VideoMemory[80*y+x] & 0x00FF);
-
-        x += xoffset;
-        if(x >= 80) x = 79;
-        if(x < 0) x = 0;
-        y += yoffset;
-        if(y >= 25) y = 24;
-        if(y < 0) y = 0;
-
-        VideoMemory[80*y+x] = (VideoMemory[80*y+x] & 0x0F00) << 4
-                            | (VideoMemory[80*y+x] & 0xF000) >> 4
-                            | (VideoMemory[80*y+x] & 0x00FF);
-    }
-    
 };
 
 typedef void (*constructor)();
@@ -161,12 +113,12 @@ extern "C" void kernelMain(const void* multiboot_structure, uint32_t multiboot_m
     DriverManager drvManager;
     
     printf("Loading keyboard\n");
-    PrintKeyboardGraphicsHandler kbhandler(&canvas, &arial);
+    ConsoleKeyboardEventHandler kbhandler;
     KeyboardDriver keyboard(&interrupts, &kbhandler);
     drvManager.AddDriver(&keyboard);
     
     printf("Loading mouse\n");
-    MouseToConsole mousehandler;
+    MouseEventHandler mousehandler;
     MouseDriver mouse(&interrupts, &mousehandler);
     drvManager.AddDriver(&mouse);
         
@@ -185,4 +137,12 @@ extern "C" void kernelMain(const void* multiboot_structure, uint32_t multiboot_m
     arial.DrawTo(&canvas, "Remco OS", 10, canvas.Width/2 - 7*4, canvas.Height/2 - 30, Color::Create(0,0,0));
 
     CPU::PrintInfo();
+
+    Console::Init(&canvas, &arial, &kbhandler);
+
+    while(1)
+     printf(Console::ReadLine());
+
+
+    while(1);
 }

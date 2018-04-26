@@ -105,6 +105,7 @@ uint32_t KeyboardDriver::HandleInterrupt(uint32_t esp)
 
             case 0x1C: handler->OnKeyDown('\n'); break;
             case 0x39: handler->OnKeyDown(' '); break;
+            case 0x0E: handler->OnKeyDown('\b'); break;
 
             default:
             {

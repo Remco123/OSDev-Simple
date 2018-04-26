@@ -20,6 +20,7 @@ objects = obj/loader.o \
           obj/drivers/keyboard.o \
           obj/drivers/mouse.o \
 		  obj/drivers/rtc.o \
+		  obj/gui/console.o \
 		  obj/gui/color.o \
 		  obj/gui/canvas.o \
 		  obj/gui/font.o \

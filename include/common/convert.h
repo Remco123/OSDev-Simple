@@ -77,6 +77,12 @@ namespace myos
                 }
                 return result;
             }
+            static char* CharToStr(char c)
+            {
+                char* result = " ";
+                result[0] = c;
+                return result;
+            }
         };
     }
 }
