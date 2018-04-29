@@ -28,7 +28,7 @@ namespace myos
                 virtual myos::common::uint8_t Read();
                 virtual void Write(myos::common::uint8_t data);
 
-            protected:
+            //protected:
                 static inline myos::common::uint8_t Read8(myos::common::uint16_t _port)
                 {
                     myos::common::uint8_t result;
@@ -51,7 +51,7 @@ namespace myos
                 ~Port8BitSlow();
 
                 virtual void Write(myos::common::uint8_t data);
-            protected:
+            //protected:
                 static inline void Write8Slow(myos::common::uint16_t _port, myos::common::uint8_t _data)
                 {
                     __asm__ volatile("outb %0, %1\njmp 1f\n1: jmp 1f\n1:" : : "a" (_data), "Nd" (_port));
@@ -70,7 +70,7 @@ namespace myos
                 virtual myos::common::uint16_t Read();
                 virtual void Write(myos::common::uint16_t data);
 
-            protected:
+            //protected:
                 static inline myos::common::uint16_t Read16(myos::common::uint16_t _port)
                 {
                     myos::common::uint16_t result;
@@ -95,7 +95,7 @@ namespace myos
                 virtual myos::common::uint32_t Read();
                 virtual void Write(myos::common::uint32_t data);
 
-            protected:
+            //protected:
                 static inline myos::common::uint32_t Read32(myos::common::uint16_t _port)
                 {
                     myos::common::uint32_t result;

@@ -6,7 +6,6 @@
 #include <memorymanagement.h>
 #include <hardwarecommunication/interrupts.h>
 #include <hardwarecommunication/pci.h>
-#include <hardwarecommunication/cpu.h>
 #include <gui/console.h>
 #include <drivers/driver.h>
 #include <drivers/keyboard.h>
@@ -18,6 +17,7 @@
 #include <gui/image.h>
 #include <gui/bmp.h>
 #include <gui/arial.h>
+#include <gui/shell.h>
 #include <common/convert.h>
 #include <common/memfunc.h>
 #include <stdarg.h>
@@ -79,12 +79,6 @@ public:
         x+=10;
     }
 };
-
-int strcmp(const char *s1, const char *s2)
-{
-    while ((*s1 == *s2) && *s1) { ++s1; ++s2; }
-    return ((int) (unsigned char) *s1) - ((int) (unsigned char) *s2);
-}
 
 typedef void (*constructor)();
 extern "C" constructor start_ctors;
@@ -148,15 +142,13 @@ extern "C" void kernelMain(const void* multiboot_structure, uint32_t multiboot_m
     printf("Activating Interrupts\n");
     interrupts.Activate();
 
-    arial.DrawTo(&canvas, "Remco OS", 10, canvas.Width/2 - 7*4, canvas.Height/2 - 30, Color::Create(0,0,0));
+    canvas.DrawFillRect(Color::Create(48, 186, 117), canvas.Width - 85, 0, 85,30);
+    arial.DrawTo(&canvas, "Remco OS\nVersie: 0.12", 10, canvas.Width - 80, 5, Color::Create(0,0,0));
 
+    Shell shell(&cons);
     while(1)
     {
-        cons.Write("==> ");
-        char* input = cons.ReadLine();
-        if(strcmp(input, "cpu") == 0)
-            CPU::PrintInfo();
-        cons.CheckForScroll();
+        shell.Next();
     }
 
 

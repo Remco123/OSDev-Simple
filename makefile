@@ -26,6 +26,7 @@ objects = obj/loader.o \
 		  obj/gui/font.o \
 		  obj/gui/bmp.o \
 		  obj/gui/image.o \
+		  obj/gui/shell.o \
           obj/kernel.o
 
 
