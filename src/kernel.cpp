@@ -20,7 +20,7 @@
 #include <gui/shell.h>
 #include <common/convert.h>
 #include <common/memfunc.h>
-#include <stdarg.h>
+#include <multitasking.h>
 
 using namespace myos;
 using namespace myos::common;
@@ -112,8 +112,15 @@ extern "C" void kernelMain(const void* multiboot_structure, uint32_t multiboot_m
     size_t heap = 10*1024*1024;
     MemoryManager memoryManager(heap, (*memupper)*1024 - heap - 10*1024);
 
+    printf("Starting Task Manager\n");
+    TaskManager taskManager;
+    //Task task1(&gdt, taskA);
+    //Task task2(&gdt, taskB);
+    //taskManager.AddTask(&task1);
+    //taskManager.AddTask(&task2);
+    
     printf("Starting Interrupts Controller\n");
-    InterruptManager interrupts(0x20, &gdt);
+    InterruptManager interrupts(0x20, &gdt, &taskManager);
 
     printf("Starting Driver Controller\n");
     DriverManager drvManager;

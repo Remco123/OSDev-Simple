@@ -10,6 +10,7 @@ objects = obj/loader.o \
 		  obj/gdtloader.o \
           obj/gdt.o \
 		  obj/memorymanagement.o \
+		  obj/multitasking.o \
 		  obj/common/memfunc.o \
           obj/drivers/driver.o \
           obj/hardwarecommunication/port.o \

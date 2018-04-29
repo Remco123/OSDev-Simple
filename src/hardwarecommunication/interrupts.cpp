@@ -1,9 +1,10 @@
-
 #include <hardwarecommunication/interrupts.h>
+using namespace myos;
 using namespace myos::common;
 using namespace myos::hardwarecommunication;
 
-void printf(char*);
+
+void printf(char* str);
 void printfHex(uint8_t);
 
 
@@ -58,12 +59,13 @@ void InterruptManager::SetInterruptDescriptorTableEntry(uint8_t interrupt,
 }
 
 
-InterruptManager::InterruptManager(uint16_t hardwareInterruptOffset, GlobalDescriptorTable* globalDescriptorTable)
+InterruptManager::InterruptManager(uint16_t hardwareInterruptOffset, GlobalDescriptorTable* globalDescriptorTable, TaskManager* taskManager)
     : programmableInterruptControllerMasterCommandPort(0x20),
       programmableInterruptControllerMasterDataPort(0x21),
       programmableInterruptControllerSlaveCommandPort(0xA0),
       programmableInterruptControllerSlaveDataPort(0xA1)
 {
+    this->taskManager = taskManager;
     this->hardwareInterruptOffset = hardwareInterruptOffset;
     uint32_t CodeSegment = globalDescriptorTable->CodeSegmentSelector();
 
@@ -152,7 +154,7 @@ void InterruptManager::Activate()
         ActiveInterruptManager->Deactivate();
 
     ActiveInterruptManager = this;
-    asm ("sti");
+    asm("sti");
 }
 
 void InterruptManager::Deactivate()
@@ -183,6 +185,11 @@ uint32_t InterruptManager::DoHandleInterrupt(uint8_t interrupt, uint32_t esp)
         printf("UNHANDLED INTERRUPT 0x");
         printfHex(interrupt);
     }
+    
+    if(interrupt == hardwareInterruptOffset)
+    {
+        esp = (uint32_t)taskManager->Schedule((CPUState*)esp);
+    }
 
     // hardware interrupts must be acknowledged
     if(hardwareInterruptOffset <= interrupt && interrupt < hardwareInterruptOffset+16)
@@ -194,17 +201,3 @@ uint32_t InterruptManager::DoHandleInterrupt(uint8_t interrupt, uint32_t esp)
 
     return esp;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
