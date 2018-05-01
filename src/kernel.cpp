@@ -107,6 +107,9 @@ extern "C" void kernelMain(const void* multiboot_structure, uint32_t multiboot_m
     printf("Starting gdt\n");
     GlobalDescriptorTable gdt;
 
+    printf("Loading CPU Info\n");
+    CPU::PrintInfo();
+
     printf("Starting Memory Manager\n");
     uint32_t* memupper = (uint32_t*)(((size_t)multiboot_structure) + 8);
     size_t heap = 10*1024*1024;
@@ -114,10 +117,6 @@ extern "C" void kernelMain(const void* multiboot_structure, uint32_t multiboot_m
 
     printf("Starting Task Manager\n");
     TaskManager taskManager;
-    //Task task1(&gdt, taskA);
-    //Task task2(&gdt, taskB);
-    //taskManager.AddTask(&task1);
-    //taskManager.AddTask(&task2);
     
     printf("Starting Interrupts Controller\n");
     InterruptManager interrupts(0x20, &gdt, &taskManager);

@@ -10,6 +10,70 @@ using namespace myos::hardwarecommunication;
 #define CALIBRATE_LATCH (5 * LATCH)
 #define CALIBRATE_TIME	(5 * 1000020 / HZ)
 
+bool CPU::SSE3      = false;
+bool CPU::PCLMULQDQ = false;
+bool CPU::DTES64    = false;
+bool CPU::MONITOR   = false;
+bool CPU::DS_CPL    = false;
+bool CPU::VMX       = false;
+bool CPU::SMX       = false;
+bool CPU::EST       = false;
+bool CPU::TM2       = false;
+bool CPU::SSSE3     = false;
+bool CPU::CNXT_ID   = false;
+bool CPU::FMA       = false;
+bool CPU::CX16      = false;
+bool CPU::XTPR      = false;
+bool CPU::PDCM      = false;
+bool CPU::PCID      = false;
+bool CPU::DCA       = false;
+bool CPU::SSE41     = false;
+bool CPU::SSE42     = false;
+bool CPU::X2APIC    = false;
+bool CPU::MOVBE     = false;
+bool CPU::POPCNT    = false;
+bool CPU::TSC       = false;
+bool CPU::AESNI     = false;
+bool CPU::XSAVE     = false;
+bool CPU::OSXSAVE   = false;
+bool CPU::AVX       = false;
+bool CPU::F16C      = false;
+bool CPU::RDRAND    = false;
+bool CPU::FPU       = false;
+bool CPU::VME       = false;
+bool CPU::DE        = false;
+bool CPU::PSE       = false;
+bool CPU::MSR       = false;
+bool CPU::PAE       = false;
+bool CPU::MCE       = false;
+bool CPU::CX8       = false;
+bool CPU::APIC      = false;
+bool CPU::SEP       = false;
+bool CPU::MTRR      = false;
+bool CPU::PGE       = false;
+bool CPU::MCA       = false;
+bool CPU::CMOV      = false;
+bool CPU::PAT       = false;
+bool CPU::PSE36     = false;
+bool CPU::PSN       = false;
+bool CPU::CLFLUSH   = false;
+bool CPU::DS        = false;
+bool CPU::ACPI      = false;
+bool CPU::MMX       = false;
+bool CPU::FXSR      = false;
+bool CPU::SSE       = false;
+bool CPU::SSE2      = false;
+bool CPU::SS        = false;
+bool CPU::HTT       = false;
+bool CPU::TM        = false;
+bool CPU::PBE       = false;
+bool CPU::Function  = false;
+bool CPU::SYSCALL   = false;
+bool CPU::XD        = false;
+bool CPU::_1GB_PAGE  = false;
+bool CPU::RDTSCP    = false;
+bool CPU::_64_BIT    = false;
+
 
 
 void printf(char* str);
@@ -113,28 +177,29 @@ void CPU::PrintInfo()
     {
         cpuid(0x01, &eax, &ebx, &ecx, &edx);
 
-        printf("Features:");
+        printf("Features:"); //TODO: Add all instructions and features.
 
-        if (edx & EDX_PSE)      printf(" PSE");
-        if (edx & EDX_PAE)      printf(" PAE");
-        if (edx & EDX_APIC)     printf(" APIC");
-        if (edx & EDX_MTRR)     printf(" MTRR");
-
-        printf("\n");
-
-        printf("Instructions:");
-
-        if (edx & EDX_TSC)      printf(" TSC");
-        if (edx & EDX_MSR)      printf(" MSR");
-        if (edx & EDX_SSE)      printf(" SSE");
-        if (edx & EDX_SSE2)     printf(" SSE2");
-        if (ecx & ECX_SSE3)     printf(" SSE3");
-        if (ecx & ECX_SSSE3)    printf(" SSSE3");
-        if (ecx & ECX_SSE41)    printf(" SSE41");
-        if (ecx & ECX_SSE42)    printf(" SSE42");
-        if (ecx & ECX_AVX)      printf(" AVX");
-        if (ecx & ECX_F16C)     printf(" F16C");
-        if (ecx & ECX_RDRAND)   printf(" RDRAND");
+        if (edx & EDX_PSE)      { printf(" PSE"); PSE = true;}
+        if (edx & EDX_PAE)      { printf(" PAE"); PAE = true;}
+        if (edx & EDX_APIC)     { printf(" APIC"); APIC = true;}
+        if (edx & EDX_MTRR)     { printf(" MTRR"); MTRR = true;}
+ 
+        printf("\n"); 
+ 
+        printf("Instructions:"); 
+ 
+        if (edx & EDX_TSC)      { printf(" TSC"); TSC = true;}
+        if (edx & EDX_MSR)      { printf(" MSR"); MSR = true;}
+        if (edx & EDX_SSE)      { printf(" SSE"); SSE = true;}
+        if (edx & EDX_SSE2)     { printf(" SSE2"); SSE2 = true;}
+        if (ecx & ECX_SSE3)     { printf(" SSE3"); SSE3 = true;}
+        if (ecx & ECX_SSSE3)    { printf(" SSSE3"); SSSE3 = true;}
+        if (ecx & ECX_SSE41)    { printf(" SSE41"); SSE41 = true;}
+        if (ecx & ECX_SSE42)    { printf(" SSE42"); SSE42 = true;}
+        if (ecx & ECX_AVX)      { printf(" AVX"); AVX = true;}
+        if (edx & EDX_MMX)      { printf(" MMX"); MMX = true; }
+        if (ecx & ECX_F16C)     { printf(" F16C"); F16C = true;}
+        if (ecx & ECX_RDRAND)   { printf(" RDRAND"); RDRAND = true;}
 
         printf("\n");
     }
