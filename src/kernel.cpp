@@ -11,6 +11,7 @@
 #include <drivers/keyboard.h>
 #include <drivers/mouse.h>
 #include <drivers/rtc.h>
+#include <drivers/vesa/vesa.h>
 #include <gui/canvas.h>
 #include <gui/color.h>
 #include <gui/font.h>
@@ -47,6 +48,12 @@ void printfHex(uint8_t key)
     foo[0] = hex[(key >> 4) & 0xF];
     foo[1] = hex[key & 0xF];
     printf(foo);
+}
+
+void printfHex16(uint16_t key)
+{
+    printfHex((key >> 8) & 0xFF);
+    printfHex( key & 0xFF);
 }
 
 void printfHex32(uint32_t key)
@@ -152,6 +159,15 @@ extern "C" void kernelMain(const void* multiboot_structure, uint32_t multiboot_m
     arial.DrawTo(&canvas, "Remco OS\nVersie: 0.12", 10, canvas.Width - 80, 5, Color::Create(0,0,0));
 
     Shell shell(&cons);
+
+    RTC rtc;
+    int cursec = rtc.GetSecond();
+
+    while(cursec + 2 > rtc.GetSecond()); //Wait 2 sec
+
+    Vesa vesa;
+    vesa.SelectMode(&canvas);
+
     while(1)
     {
         shell.Next();

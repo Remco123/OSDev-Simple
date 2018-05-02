@@ -2,7 +2,7 @@
 # sudo apt-get install g++ binutils libc6-dev-i386
 # sudo apt-get install VirtualBox grub-legacy xorriso
 
-GCCPARAMS = -m32 -Iinclude -fno-use-cxa-atexit -nostdlib -fno-builtin -fno-rtti -fno-exceptions -fno-leading-underscore -Wno-write-strings -std=c++11
+GCCPARAMS = -m32 -Iinclude -fno-use-cxa-atexit -nostdlib -fno-builtin -fno-rtti -fno-exceptions -fno-leading-underscore -Wno-write-strings -std=c++11 -fpermissive
 ASPARAMS = --32
 LDPARAMS = -melf_i386
 
@@ -21,6 +21,8 @@ objects = obj/loader.o \
           obj/drivers/keyboard.o \
           obj/drivers/mouse.o \
 		  obj/drivers/rtc.o \
+		  obj/drivers/vesa/vesa.o \
+		  obj/drivers/vesa/int32.o \
 		  obj/gui/console.o \
 		  obj/gui/color.o \
 		  obj/gui/canvas.o \
@@ -39,6 +41,9 @@ run: mykernel.iso
 obj/%.o: src/%.cpp
 	mkdir -p $(@D)
 	gcc $(GCCPARAMS) -c -o $@ $<
+
+obj/drivers/vesa/int32.o: src/drivers/vesa/int32.s #this is nasm syntax
+	nasm -f elf $< -o $@
 
 obj/%.o: src/%.s
 	mkdir -p $(@D)

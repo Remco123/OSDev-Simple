@@ -91,7 +91,7 @@ void PeripheralComponentInterconnectController::SelectDrivers(DriverManager* dri
                 if(driver != 0)
                     driverManager->AddDriver(driver);
             
-                /*
+                
                 printf("PCI BUS ");
                 printfHex(bus & 0xFF);
                 
@@ -101,14 +101,18 @@ void PeripheralComponentInterconnectController::SelectDrivers(DriverManager* dri
                 printf(", FUNCTION ");
                 printfHex(function & 0xFF);
                 
-                printf(" = VENDOR ");
+                printf(", VENDOR ");
                 printfHex((dev.vendor_id & 0xFF00) >> 8);
                 printfHex(dev.vendor_id & 0xFF);
                 printf(", DEVICE ");
                 printfHex((dev.device_id & 0xFF00) >> 8);
                 printfHex(dev.device_id & 0xFF);
+                printf(", INT ");
+                printfHex(dev.interrupt);
+                printf(", IO ");
+                printfHex(dev.portBase);
                 printf("\n");
-                */
+                
             }
         }
     }
@@ -171,7 +175,7 @@ Driver* PeripheralComponentInterconnectController::GetDriver(PeripheralComponent
                     if(driver != 0)
                         new (driver) amd_am79c973(...);
                     */
-                    printf("AMD am79c973 \n");
+                    printf("AMD am79c973 ");
                     break;
             }
             break;
@@ -187,7 +191,7 @@ Driver* PeripheralComponentInterconnectController::GetDriver(PeripheralComponent
             switch(dev.subclass_id)
             {
                 case 0x00: // VGA
-                    printf("VGA \n");
+                    printf("VGA ");
                     break;
             }
             break;

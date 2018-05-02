@@ -29,6 +29,7 @@ void Console::Write(char* str,...)
                 XOffset+= this->font->GetCharData(chr,10)[0];
         }
     }
+    CheckForScroll();
 }
 void Console::WriteLine(char* msg,...)
 {
