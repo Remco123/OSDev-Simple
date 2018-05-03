@@ -36,7 +36,7 @@ objects = obj/loader.o \
 run: mykernel.iso
 	#qemu-system-x86_64 -cdrom mykernel.iso
 	(killall VirtualBox && sleep 1) || true
-	virtualbox --startvm 'Time OS' &
+	virtualbox --startvm 'OSDev Tests' &
 
 obj/%.o: src/%.cpp
 	mkdir -p $(@D)
