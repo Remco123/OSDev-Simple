@@ -10,6 +10,7 @@
 #include <drivers/driver.h>
 #include <drivers/keyboard.h>
 #include <drivers/mouse.h>
+#include <drivers/vesa/vesaheaders.h>
 #include <drivers/rtc.h>
 #include <gui/canvas.h>
 #include <gui/color.h>
@@ -86,6 +87,23 @@ public:
     }
 };
 
+void PrintGraphicsInfo(multiboot_info_t* mbi)
+{
+    printf("//---------------- Graphics Info --------------------//\n");
+    printf("Graphics Mode: "); printf(Convert::itoa(mbi->framebuffer_width)); printf("x"); printf(Convert::itoa(mbi->framebuffer_height)); printf("x"); printf(Convert::itoa(mbi->framebuffer_bpp)); printf("\n");
+
+    VESA_INFO* info = (VESA_INFO*)mbi->vbe_control_info;
+    if(info->signature[0] == 'V' && info->signature[3] == 'A') //We have info about the controller right?
+    {
+        printf("Mode Number: 0x"); printfHex16(mbi->vbe_mode); printf("\n");
+        printf("Memory: "); printf(Convert::itoa(info->video_memory)); printf("\n");
+        printf("Version: "); printfHex16(info->version); printf("\n");
+        MODE_INFO* mode = (MODE_INFO*)mbi->vbe_mode_info;
+        printf("PhysBase: "); printfHex32(mode->physbase); printf("\n");
+    }
+    printf("//---------------------------------------------------//\n");
+}
+
 typedef void (*constructor)();
 extern "C" constructor start_ctors;
 extern "C" constructor end_ctors;
@@ -100,7 +118,7 @@ extern "C" void kernelMain(const void* multiboot_structure, uint32_t multiboot_m
     multiboot_info_t* mbi = (multiboot_info_t*)multiboot_structure;
 
     //Init the canvas for drawing to the screen.
-    Canvas canvas((void*)mbi->framebuffer_addr, mbi->framebuffer_pitch, (uint32_t)mbi->framebuffer_width, (uint32_t)mbi->framebuffer_height, (uint8_t)mbi->framebuffer_bpp);
+    Canvas canvas((void*)mbi->framebuffer_addr, mbi->framebuffer_pitch, (uint32_t)mbi->framebuffer_width, (uint32_t)mbi->framebuffer_height, mbi->framebuffer_bpp);
     Arial arial;
     canvas.Clear(Color::Create(200, 200, 200));
 
@@ -109,6 +127,8 @@ extern "C" void kernelMain(const void* multiboot_structure, uint32_t multiboot_m
 
     currentCanvas = &canvas;
     currentFont = &arial;
+
+    PrintGraphicsInfo(mbi);
 
     printf("Starting gdt\n");
     GlobalDescriptorTable gdt;

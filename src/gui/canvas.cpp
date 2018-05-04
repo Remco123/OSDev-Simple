@@ -22,7 +22,7 @@ void Canvas::SetPixel(common::uint32_t x, common::uint32_t y, gui::Color color)
     where[0] = (uint8_t)(color.B & 255); //Blue
     where[1] = (uint8_t)(color.G & 255); //Green
     where[2] = (uint8_t)(color.R & 255); //Red
-    where[3] = 255; //Alpha
+    //where[3] = 255; //Alpha
 }
 Color Canvas::GetPixel(common::uint32_t x, common::uint32_t y)
 {
