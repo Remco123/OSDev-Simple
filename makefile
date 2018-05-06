@@ -22,6 +22,7 @@ objects = obj/loader.o \
           obj/drivers/mouse.o \
 		  obj/drivers/rtc.o \
 		  obj/drivers/vesa/int32.o \
+		  obj/drivers/amd_am79c973.o \
 		  obj/gui/console.o \
 		  obj/gui/color.o \
 		  obj/gui/canvas.o \
@@ -29,6 +30,13 @@ objects = obj/loader.o \
 		  obj/gui/bmp.o \
 		  obj/gui/image.o \
 		  obj/gui/shell.o \
+		  obj/net/etherframe.o \
+          obj/net/arp.o \
+          obj/net/ipv4.o \
+          obj/net/icmp.o \
+          obj/net/udp.o \
+          obj/net/tcp.o \
+		  obj/net/dhcp.o \
           obj/kernel.o
 
 

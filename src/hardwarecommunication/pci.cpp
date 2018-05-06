@@ -1,4 +1,5 @@
 #include <hardwarecommunication/pci.h>
+#include <drivers/amd_am79c973.h>
 using namespace myos::common;
 using namespace myos::drivers;
 using namespace myos::hardwarecommunication;
@@ -170,12 +171,13 @@ Driver* PeripheralComponentInterconnectController::GetDriver(PeripheralComponent
             switch(dev.device_id)
             {
                 case 0x2000: // am79c973
-                    /*
+                    printf("AMD am79c973 ");
                     driver = (amd_am79c973*)MemoryManager::activeMemoryManager->malloc(sizeof(amd_am79c973));
                     if(driver != 0)
-                        new (driver) amd_am79c973(...);
-                    */
-                    printf("AMD am79c973 ");
+                        new (driver) amd_am79c973(&dev, interrupts);
+                    else
+                        printf("instantiation failed");
+                    return driver;
                     break;
             }
             break;

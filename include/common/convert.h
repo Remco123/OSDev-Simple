@@ -12,6 +12,8 @@ namespace myos
         public:
             static char* itoa(int i)
             {
+                if(i == 0)
+                    return "0";
                 static char output[24];  // 64-bit MAX_INT is 20 digits
                 char* p = &output[23];
 

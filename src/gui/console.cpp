@@ -27,6 +27,11 @@ void Console::Write(char* str,...)
             default:
                 font->DrawTo(screen, Convert::CharToStr(chr), 10, XOffset, YOffset, Color::Create(0,0,0));
                 XOffset+= this->font->GetCharData(chr,10)[0];
+                if(XOffset + 10 > screen->Width)
+                {
+                    YOffset += 10;
+                    XOffset = 0;
+                }
         }
     }
     CheckForScroll();
