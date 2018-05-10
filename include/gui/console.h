@@ -55,12 +55,12 @@ namespace myos
         class Console
         {
         private:
-            Canvas* screen;
             Font* font;
 
             int YOffset = 0;
             int XOffset = 0;
         public:
+            Canvas* screen;
             ConsoleKeyboardEventHandler* keyboard;
             Console(Canvas* canv, Font* fnt, ConsoleKeyboardEventHandler* kb);
 

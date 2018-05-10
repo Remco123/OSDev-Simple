@@ -21,6 +21,9 @@ objects = obj/loader.o \
           obj/drivers/keyboard.o \
           obj/drivers/mouse.o \
 		  obj/drivers/rtc.o \
+		  obj/vfs/ata.o \
+		  obj/vfs/msdospart.o \
+		  obj/vfs/fat.o \
 		  obj/drivers/vesa/int32.o \
 		  obj/drivers/amd_am79c973.o \
 		  obj/gui/console.o \

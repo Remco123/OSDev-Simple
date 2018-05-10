@@ -12,6 +12,8 @@
 #include <drivers/mouse.h>
 #include <drivers/vesa/vesaheaders.h>
 #include <drivers/rtc.h>
+#include <vfs/ata.h>
+#include <vfs/msdospart.h>
 #include <gui/canvas.h>
 #include <gui/color.h>
 #include <gui/font.h>
@@ -38,6 +40,7 @@ using namespace myos::drivers;
 using namespace myos::hardwarecommunication;
 using namespace myos::gui;
 using namespace myos::net;
+using namespace myos::filesystem;
 
 Canvas* currentCanvas;
 Arial* currentFont;
@@ -179,56 +182,24 @@ extern "C" void kernelMain(const void* multiboot_structure, uint32_t multiboot_m
     printf("$----------------------------------------$\n");
         
     printf("Activating Drivers\n");
-    drvManager.ActivateAll();
+    drvManager.ActivateAll();    
 
-    amd_am79c973* eth0 = (amd_am79c973*)(drvManager.drivers[2]);
+    AdvancedTechnologyAttachment ata0m(0x1F0, true);
+    printf("ATA Primary Master:\n");
+    bool Ata0M = ata0m.Identify();
+    
+    AdvancedTechnologyAttachment ata0s(0x1F0, false);
+    printf("ATA Primary Slave:\n");
+    bool Ata0S = ata0s.Identify();
 
-    if(eth0 == 0)
-        printf("No Network Device\n");
-    
-    // IP Address
-    uint8_t ip1 = 10, ip2 = 0, ip3 = 2, ip4 = 15;
-    uint32_t ip_be = ((uint32_t)ip4 << 24)
-                | ((uint32_t)ip3 << 16)
-                | ((uint32_t)ip2 << 8)
-                | (uint32_t)ip1;
-    eth0->SetIPAddress(ip_be);
-    EtherFrameProvider etherframe(eth0);
-    AddressResolutionProtocol arp(&etherframe);    
-
-    
-    // IP Address of the default gateway
-    uint8_t gip1 = 10, gip2 = 0, gip3 = 2, gip4 = 2;
-    uint32_t gip_be = ((uint32_t)gip4 << 24)
-                   | ((uint32_t)gip3 << 16)
-                   | ((uint32_t)gip2 << 8)
-                   | (uint32_t)gip1;
-    
-    uint8_t subnet1 = 255, subnet2 = 255, subnet3 = 255, subnet4 = 0;
-    uint32_t subnet_be = ((uint32_t)subnet4 << 24)
-                   | ((uint32_t)subnet3 << 16)
-                   | ((uint32_t)subnet2 << 8)
-                   | (uint32_t)subnet1;
-                   
-    InternetProtocolProvider ipv4(&etherframe, &arp, gip_be, subnet_be);
-    InternetControlMessageProtocol icmp(&ipv4);
-    UserDatagramProtocolProvider udp(&ipv4);
-    TransmissionControlProtocolProvider tcp(&ipv4);
-    
+    if(Ata0M == 1) //Device Exist?
+        MSDOSPartitionTable::ReadPartitions(&ata0m);
+        
+    if(Ata0S == 1) //Device Exist?
+        MSDOSPartitionTable::ReadPartitions(&ata0s);
          
     printf("Activating Interrupts\n");
-    interrupts.Activate();
-    
-    arp.BroadcastMACAddress(gip_be);
-    
-    icmp.RequestEchoReply(gip_be);
-
-    DHCP dhcp;
-
-    UserDatagramProtocolSocket* dhcpSocket = udp.Connect(gip_be, PORT_BOOTP_SERVER);
-    udp.Bind(dhcpSocket, &dhcp);
-
-    dhcp.DhcpDiscover(eth0->GetMACAddress(), dhcpSocket);
+    interrupts.Activate();    
 
     canvas.DrawFillRect(Color::Create(48, 186, 117), canvas.Width - 85, 0, 85,30);
     arial.DrawTo(&canvas, "Remco OS\nVersie: 0.12", 10, canvas.Width - 80, 5, Color::Create(0,0,0));

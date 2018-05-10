@@ -49,44 +49,6 @@ void Shell::Next()
         console->WriteLine("Jumbo");
     else if(strcmp(input, "reboot") == 1)
         reboot();
-    else if(strcmp(input, "memtest") == 1)
-    {
-        if(!CPU::SSE)
-        {
-            console->WriteLine("Need SSE Support for memtest");
-        }
-        else
-        {
-            console->WriteLine("Test Without SSE");
-            CPU::SSE = false;
-
-            void* from = MemoryManager::activeMemoryManager->malloc(1024);
-            void* to = MemoryManager::activeMemoryManager->malloc(1024);
-
-            for(int i = 0; i < 2000; i++)
-                MemoryFunctions::memcpy(from, to, 1024);
-
-            console->WriteLine("Done");
-
-
-            console->WriteLine("Test With SSE");
-            CPU::SSE = true;
-
-            void* from2 = MemoryManager::activeMemoryManager->malloc(1024);
-            void* to2 = MemoryManager::activeMemoryManager->malloc(1024);
-
-            for(int i = 0; i < 2000; i++)
-                MemoryFunctions::memcpy(from2, to2, 1024);
-
-            console->WriteLine("Done");
-
-            MemoryManager::activeMemoryManager->free(from);
-            MemoryManager::activeMemoryManager->free(to);
-
-            MemoryManager::activeMemoryManager->free(from2);
-            MemoryManager::activeMemoryManager->free(to2);
-        }
-    }
 
     this->console->CheckForScroll();
     MemoryManager::activeMemoryManager->free(input);
