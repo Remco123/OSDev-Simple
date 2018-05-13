@@ -26,6 +26,7 @@
 #include <multitasking.h>
 
 #include <drivers/amd_am79c973.h>
+#include <drivers/rtl8139.h>
 #include <net/etherframe.h>
 #include <net/arp.h>
 #include <net/ipv4.h>
@@ -75,30 +76,7 @@ void printfHex32(uint32_t key)
     printfHex((key >> 16) & 0xFF);
     printfHex((key >> 8) & 0xFF);
     printfHex( key & 0xFF);
-}
-
-class PrintKeyboardGraphicsHandler : public KeyboardEventHandler
-{
-private:
-    Canvas* gfx; //Pointer to the canvas.
-    Arial* font; //Pointer to the font.
-    //ps: pointers are cool!
-public:
-    PrintKeyboardGraphicsHandler(Canvas* canv, Arial* font)
-    {
-        this->gfx = canv;
-        this->font = font;
-    }
-    void OnKeyDown(char c)
-    {
-        static int x = 5;
-
-        char* foo = " ";
-        foo[0] = c;
-        font->DrawTo(gfx, foo, 10, x, 10, Color::Create(255, 255, 255));
-        x+=10;
-    }
-};
+} 
 
 void PrintGraphicsInfo(multiboot_info_t* mbi)
 {
@@ -124,6 +102,24 @@ extern "C" void callConstructors()
 {
     for(constructor* i = &start_ctors; i != &end_ctors; i++)
         (*i)();
+}
+
+void SleepSec(RTC* rtc, int sec)
+{
+     int StartSec = rtc->GetSecond();
+     int EndSec;
+     if (StartSec + sec > 59)
+     {
+         EndSec = 0;
+     }
+     else
+     {
+         EndSec = StartSec + sec;
+     }
+     while (rtc->GetSecond() != EndSec)
+     {
+         // Loop round
+     }
 }
 
 extern "C" void kernelMain(const void* multiboot_structure, uint32_t multiboot_magic)
@@ -183,7 +179,7 @@ extern "C" void kernelMain(const void* multiboot_structure, uint32_t multiboot_m
         
     printf("Activating Drivers\n");
     drvManager.ActivateAll();    
-
+/*
     AdvancedTechnologyAttachment ata0m(0x1F0, true);
     printf("ATA Primary Master:\n");
     bool Ata0M = ata0m.Identify();
@@ -197,9 +193,19 @@ extern "C" void kernelMain(const void* multiboot_structure, uint32_t multiboot_m
         
     if(Ata0S == 1) //Device Exist?
         MSDOSPartitionTable::ReadPartitions(&ata0s);
-         
+*/
+
+    RTC rtc;
+
+    printf("Testing RTL8139\n");
+    RTL8139* eth0 = (RTL8139*)(drvManager.drivers[2]);
+
     printf("Activating Interrupts\n");
-    interrupts.Activate();    
+    interrupts.Activate(); 
+
+    eth0->Send((uint8_t*)"Hello Network", 14);
+
+    printf("Loading Shell\n");  
 
     canvas.DrawFillRect(Color::Create(48, 186, 117), canvas.Width - 85, 0, 85,30);
     arial.DrawTo(&canvas, "Remco OS\nVersie: 0.12", 10, canvas.Width - 80, 5, Color::Create(0,0,0));

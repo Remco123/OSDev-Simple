@@ -62,6 +62,9 @@ namespace myos
         {
             Port32Bit dataPort;
             Port32Bit commandPort;
+
+            #define PCI_CONFIG  0xCF8
+            #define PCI_DATA    0xCFC
             
         public:
             PeripheralComponentInterconnectController();
@@ -75,8 +78,11 @@ namespace myos
             myos::drivers::Driver* GetDriver(PeripheralComponentInterconnectDeviceDescriptor dev, myos::hardwarecommunication::InterruptManager* interrupts);
             PeripheralComponentInterconnectDeviceDescriptor GetDeviceDescriptor(myos::common::uint16_t bus, myos::common::uint16_t device, myos::common::uint16_t function);
             BaseAddressRegister GetBaseAddressRegister(myos::common::uint16_t bus, myos::common::uint16_t device, myos::common::uint16_t function, myos::common::uint16_t bar);
-        };
 
+            //common::uint32_t pci_read(common::uint32_t bus, common::uint32_t device, common::uint32_t function, common::uint32_t offset);
+
+            //void pci_write(common::uint32_t bus, common::uint32_t device, common::uint32_t function, common::uint32_t offset, common::uint32_t data);
+        };
     }
 }
     

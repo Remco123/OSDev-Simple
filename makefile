@@ -26,6 +26,7 @@ objects = obj/loader.o \
 		  obj/vfs/fat.o \
 		  obj/drivers/vesa/int32.o \
 		  obj/drivers/amd_am79c973.o \
+		  obj/drivers/rtl8139.o \
 		  obj/gui/console.o \
 		  obj/gui/color.o \
 		  obj/gui/canvas.o \

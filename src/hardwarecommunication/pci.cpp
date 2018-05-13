@@ -1,5 +1,6 @@
 #include <hardwarecommunication/pci.h>
 #include <drivers/amd_am79c973.h>
+#include <drivers/rtl8139.h>
 using namespace myos::common;
 using namespace myos::drivers;
 using namespace myos::hardwarecommunication;
@@ -182,6 +183,20 @@ Driver* PeripheralComponentInterconnectController::GetDriver(PeripheralComponent
             }
             break;
 
+        case 0x10EC: //Realtek
+            switch(dev.device_id)
+            {
+                case 0x8139: // rtl8139
+                    printf("Rtl 8139 ");
+                    driver = (RTL8139*)MemoryManager::activeMemoryManager->malloc(sizeof(RTL8139));
+                    if(driver != 0)
+                        new (driver) RTL8139(&dev, interrupts, this);
+                    else
+                        printf("instantiation failed");
+                    return driver;
+                    break;
+            }
+
         case 0x8086: // Intel
             break;
     }
@@ -225,3 +240,30 @@ PeripheralComponentInterconnectDeviceDescriptor PeripheralComponentInterconnectC
     
     return result;
 }
+
+/*
+uint32_t PeripheralComponentInterconnectController::pci_read(uint32_t bus, uint32_t device, uint32_t function, uint32_t offset) {
+    uint32_t reg = 0x80000000;
+
+    reg |= (bus & 0xFF) << 16;
+    reg |= (device & 0x1F) << 11;
+    reg |= (function & 0x7) << 8;
+    reg |= (offset & 0xFF) & 0xFC;
+
+    outportl(PCI_CONFIG, reg );
+
+    return inportl(PCI_DATA);
+}
+
+void PeripheralComponentInterconnectController::pci_write(uint32_t bus, uint32_t device, uint32_t function, uint32_t offset, uint32_t data) {
+    uint32_t reg = 0x80000000;
+
+    reg |= (bus & 0xFF) << 16;
+    reg |= (device & 0x1F) << 11;
+    reg |= (function & 0x7) << 8;
+    reg |= offset & 0xFC;
+
+    outportl(PCI_CONFIG, reg );
+    outportl(PCI_DATA, data);
+}
+*/
