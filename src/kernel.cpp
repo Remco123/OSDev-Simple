@@ -200,10 +200,10 @@ extern "C" void kernelMain(const void* multiboot_structure, uint32_t multiboot_m
     printf("Testing RTL8139\n");
     RTL8139* eth0 = (RTL8139*)(drvManager.drivers[2]);
 
+    eth0->Send((uint8_t*)"Hello Network", 14);
+
     printf("Activating Interrupts\n");
     interrupts.Activate(); 
-
-    eth0->Send((uint8_t*)"Hello Network", 14);
 
     printf("Loading Shell\n");  
 

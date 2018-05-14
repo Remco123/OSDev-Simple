@@ -15,6 +15,15 @@ namespace myos
     {
         class RTL8139 : public Driver, public hardwarecommunication::InterruptHandler
         {
+        #define CONFIG1_REGISTER 0x52
+        #define COMMANDREGISTER  0x37
+        #define INT_MASK_REG	0x3c
+        #define INT_STATUS_REG 0x3e
+        #define PACKET_READ_ADDRESS 0x38
+        #define RECEIVE_CONFIG_REG 0x44
+        #define TRSMIT_START_DESC 0x20
+        #define TRSMIT_STATUS_DESC 0x10
+        #define RECEIVE_BUFFER_ADDRESS 0x30
         private:
             common::uint8_t macAddress[5];
         public:
