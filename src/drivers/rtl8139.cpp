@@ -7,17 +7,14 @@ using namespace myos::drivers;
 
 void printf(char*);
 void printfHex(uint8_t);
+void printfHex16(uint16_t);
 void printfHex32(uint32_t);
 
-void sleep(uint32_t time)
-{
-    int i;
-    for(i=0; i<10000000*time; i++)
-        ;
-}
+uint32_t current_packet_ptr;
 
-unsigned char rxBuffer[1500];
-unsigned char TxBuffer[1300];
+// Four TXAD register, you must use a different one to send packet each time(for example, use the first one, second... fourth and back to the first)
+uint8_t TSAD_array[4] = {0x20, 0x24, 0x28, 0x2C};
+uint8_t TSD_array[4] = {0x10, 0x14, 0x18, 0x1C};
 
 static uint32_t BaseAddress=0x0;
 
@@ -29,6 +26,13 @@ RTL8139::RTL8139(myos::hardwarecommunication::PeripheralComponentInterconnectDev
     pci->Write(dev->bus, dev->device, dev->function, 0x10, ~0);
     uint32_t size = pci->Read(dev->bus, dev->device, dev->function, 0x10);
     pci->Write(dev->bus, dev->device, dev->function, 0x10,BaseAddress);
+
+    // Enable PCI Bus Mastering
+    uint32_t pci_command_reg = pci->Read(dev->bus, dev->device, dev->function, 0x04);
+    if(!(pci_command_reg & (1 << 2))) {
+        pci_command_reg |= (1 << 2);
+        pci->Write(dev->bus, dev->device, dev->function, 0x04, pci_command_reg);
+    }
 
     if( (BaseAddress & 0x1) == 1)
     {
@@ -45,8 +49,8 @@ RTL8139::RTL8139(myos::hardwarecommunication::PeripheralComponentInterconnectDev
     printf("Card Mac Address = ");
     for(unsigned int i=0; i<6; i++)
     {
-        macAddress[i] = inportb(BaseAddress + i);
-        printfHex(macAddress[i]); printf(" ");
+        mac_addr[i] = inportb(BaseAddress + i);
+        printfHex(mac_addr[i]); printf(" ");
     }
     printf("\n");
 }
@@ -57,65 +61,88 @@ RTL8139::~RTL8139()
 
 void RTL8139::Activate()
 {
-    //power on
-    outportb( (uint16_t) (BaseAddress + 0x52), 0x00);
-    //reset
+    outportb(BaseAddress + 0x52, 0x0);
+
     Reset();
 
-    outportw((BaseAddress + INT_STATUS_REG), 0xe1ff);
-    outportw((BaseAddress + PACKET_READ_ADDRESS), 0);
-    // Setup receive buffer location
-    outportl((BaseAddress + RECEIVE_BUFFER_ADDRESS), (uint32_t)rxBuffer );
-    outportw((BaseAddress + INT_MASK_REG), 0xe1ff);  // TOK + ROK
-    outportl((BaseAddress + RECEIVE_CONFIG_REG), 0xa);// | (1<<7) );
-    outportb( (BaseAddress + COMMANDREGISTER), 0x0C );
+    rx_buffer = (char*) MemoryManager::activeMemoryManager->malloc (8192 + 16 + 1500);
+    MemoryFunctions::memset(rx_buffer, 0x0, 8192 + 16 + 1500);
+    outportl(BaseAddress + 0x30, (uint32_t)rx_buffer);
+
+    // Sets the TOK and ROK bits high
+    outportw(BaseAddress + 0x3C, 0x0005);
+
+    // (1 << 7) is the WRAP bit, 0xf is AB+AM+APM+AAP
+    outportl(BaseAddress + 0x44, 0xf | (1 << 7));
+
+    // Sets the RE and TE bits high
+    outportb(BaseAddress + 0x37, 0x0C);
 }
 int RTL8139::Reset()
 {
-    outportb( (uint16_t) (BaseAddress + COMMANDREGISTER), 0x10);
-    while ( (inportb( (uint16_t) (BaseAddress + COMMANDREGISTER)) & 0x10) != 0 ) {
-        printf("Waiting for resetting rtl8139 card\n");
+    // Soft reset
+    outportb(BaseAddress + 0x37, 0x10);
+    while((inportb(BaseAddress + 0x37) & 0x10) != 0) {
+        // Do nothibg here...
     }
 }
 uint32_t RTL8139::HandleInterrupt(uint32_t esp)
 {
     printf("Got Interrupt\n");
-    outportw(BaseAddress + INT_MASK_REG, 0);
-    uint32_t interruptStatus = inportw(BaseAddress + INT_STATUS_REG);
-    printf("Status of Interrupt Status = 0x"); printfHex32(interruptStatus); printf("\n");
-    outportw(BaseAddress + INT_STATUS_REG, interruptStatus); //reset
-    if( interruptStatus & 0x01 ) {
-        printf("Packet received\n");
-        //ReceivePacketFromWire(rxBuffer);
+    
+    uint16_t status = inportw(BaseAddress + 0x3e);
+
+    if(status & TOK) {
+        printf("Packet sent\n");
     }
-    if( interruptStatus & 0x04 ) {
-        printf("Transmitted a packet sussessfully\n");
+    if (status & ROK) {
+        printf("Received packet\n");
+        Receive();
     }
-    outportw((BaseAddress + PACKET_READ_ADDRESS), 0);
-    outportl((BaseAddress + RECEIVE_BUFFER_ADDRESS), (uint32_t)rxBuffer );
-    outportw((BaseAddress + INT_MASK_REG), 0xe1ff); // TOK + ROK
-    outportl((BaseAddress + RECEIVE_CONFIG_REG), 0xa);//
+
+    outportw(BaseAddress + 0x3E, 0x5);
+
     printf("Done\n");
     return esp;
 }
 
 void RTL8139::Send(unsigned char *buffer, uint32_t len)
 {
-    static uint32_t currentStartDesc = TRSMIT_START_DESC;
-    static uint32_t currentStatusDesc = TRSMIT_STATUS_DESC;
-    static int offset = 0;
-    offset = offset + 4;
-    uint32_t value = (uint32_t)(&TxBuffer[0]) - (uint32_t)(&TxBuffer[0]) % 32 + 32;
-    sleep(2);
-    uint32_t status = 0x003f0000 | len;
-    outportl((BaseAddress + currentStartDesc), (unsigned int) buffer);
-    outportl((BaseAddress + currentStatusDesc),status);
-    currentStartDesc = TRSMIT_START_DESC+(offset%20);
-    currentStatusDesc = TRSMIT_STATUS_DESC+(offset%20);
+    void * transfer_data = MemoryManager::activeMemoryManager->malloc(len);
+    MemoryFunctions::memcpy(transfer_data, buffer, len);
+
+    // Second, fill in physical address of data, and length
+    outportl(BaseAddress + TSAD_array[tx_cur], (uint32_t)transfer_data);
+    outportl(BaseAddress + TSD_array[tx_cur++], len);
+    if(tx_cur > 3)
+        tx_cur = 0;
 
     printf("Packet Should be Send\n");
 }
 void RTL8139::Receive()
 {
+    uint16_t * t = (uint16_t*)(rx_buffer + current_packet_ptr);
+    // Skip packet header, get packet length
+    uint16_t packet_length = *(t + 1);
 
+    // Skip, packet header and packet length, now t points to the packet data
+    t = t + 2;
+    printf("Printing packet at addr 0x"); printfHex32((uint32_t)t); printf("\n");
+    for(uint16_t i = 0; i < packet_length; i++)
+    {
+        printfHex16(t[i]); printf(" ");
+    }
+
+    // Now, ethernet layer starts to handle the packet(be sure to make a copy of the packet, insteading of using the buffer)
+    // and probabbly this should be done in a separate thread...
+    void * packet = MemoryManager::activeMemoryManager->malloc(packet_length);
+    MemoryFunctions::memcpy(packet, t, packet_length);
+    //ethernet_handle_packet(packet, packet_length);
+
+    current_packet_ptr = (current_packet_ptr + packet_length + 4 + 3) & RX_READ_POINTER_MASK;
+
+    if(current_packet_ptr > RX_BUF_SIZE)
+        current_packet_ptr -= RX_BUF_SIZE;
+
+    outportw(BaseAddress + CAPR, current_packet_ptr - 0x10);
 }
