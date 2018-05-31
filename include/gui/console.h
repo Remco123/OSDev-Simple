@@ -16,37 +16,27 @@ namespace myos
         class ConsoleKeyboardEventHandler : public myos::drivers::KeyboardEventHandler
         {
         private:
-            //What if there are more keys pressed before we handle them.
-            char* buffer;
-            common::uint8_t numData;
+            char buffer;
         public:
             bool DataAvailible;
             ConsoleKeyboardEventHandler()
-            {
-                numData = 0;
-                buffer = (char*)MemoryManager::activeMemoryManager->malloc(255);
-            }
+            { }
 
             void OnKeyDown(char c)
             {
-                buffer[numData] = c;
-                numData++;
-
+                buffer = c;
                 DataAvailible = true;
             }
 
             void ClearBuffer()
             {
-                myos::common::MemoryFunctions::memset(buffer, 0, numData);
-                numData = 0;
                 DataAvailible = false;
             }
 
             char* GetBuffer()
             {
-                numData = 0;
                 DataAvailible = false;
-                return buffer;
+                return myos::common::Convert::CharToStr(buffer);
             }
         };
 

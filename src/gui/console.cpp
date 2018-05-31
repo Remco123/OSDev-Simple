@@ -52,7 +52,6 @@ char* Console::ReadLine()
     {
         while(!keyboard->DataAvailible); //Wait for data
         char* intput = keyboard->GetBuffer();
-        keyboard->ClearBuffer();
 
         for(uint8_t i = 0; i < MemoryFunctions::strlen(intput); i++) //Loop though data
         {
@@ -96,6 +95,7 @@ char* Console::ReadLine()
                     break;
             }
         }
+        keyboard->ClearBuffer();
     }
 }
 void Console::CheckForScroll()

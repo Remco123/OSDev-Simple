@@ -203,8 +203,6 @@ extern "C" void kernelMain(const void* multiboot_structure, uint32_t multiboot_m
     printf("Activating Interrupts\n");
     interrupts.Activate(); 
 
-    eth0->Send((uint8_t*)"Hallo", 6);
-
     printf("Loading Shell\n");  
 
     canvas.DrawFillRect(Color::Create(48, 186, 117), canvas.Width - 85, 0, 85,30);
