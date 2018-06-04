@@ -5,6 +5,7 @@
 
 #include <common/types.h>
 #include <vfs/ata.h>
+#include <vfs/fat.h>
 
 
 namespace myos
@@ -46,7 +47,7 @@ namespace myos
         class MSDOSPartitionTable
         {
         public:
-            static void ReadPartitions(myos::drivers::AdvancedTechnologyAttachment *hd);
+            static FatFileSystem* ReadPartitions(myos::drivers::AdvancedTechnologyAttachment *hd);
         };
         
         

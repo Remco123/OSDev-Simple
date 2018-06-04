@@ -72,9 +72,27 @@ int AdvancedTechnologyAttachment::Identify()
 
     uint16_t* buffer = (uint16_t*)MemoryManager::activeMemoryManager->malloc(512);
 
+    for(uint16_t i = 0; i < 256; i++)
+    {
+        uint16_t data = dataPort.Read();
+
+        data = (data >> 8) & 0x00FF
+             | data & 0x00FF;
+        
+        buffer[i] = data;
+    }
+
     printf("Header Info\n");
     IDENTIFY_DEVICE_DATA* hd_header = (IDENTIFY_DEVICE_DATA*)buffer;
-    printf("Removable: "); printf(hd_header->GeneralConfiguration.RemovableMedia == 1 ? (char*)"True" : (char*)"False");
+    printf("Removable: "); printf(hd_header->GeneralConfiguration.RemovableMedia == 1 ? (char*)"True\n" : (char*)"False\n");
+    printf("Cillinders: "); printf(Convert::itoa(hd_header->NumCylinders)); printf("\n");
+    printf("Heads: "); printf(Convert::itoa(hd_header->NumHeads)); printf("\n");
+    printf("Serial: "); 
+    for(int i = 0; i < 20; i++)
+        printfHex(hd_header->SerialNumber[i]);
+    printf("\n");
+
+    printf("S.M.A.R.T: "); printf(hd_header->CommandSetActive.SmartCommands == 1 ? (char*)"True" : (char*)"False");
     printf("\n");
 
     MemoryManager::activeMemoryManager->free(buffer);
@@ -148,11 +166,6 @@ void AdvancedTechnologyAttachment::Write28(common::uint32_t sector, common::uint
         uint16_t wdata = data[i];
         if(i+1 < count)
             wdata |= ((uint16_t)data[i+1]) << 8;
-
-        char* foo = "  \0";
-        foo[1] = (wdata >> 8) & 0x00FF;
-        foo[0] = wdata & 0x00FF;
-        printf(foo);
         
         dataPort.Write(wdata);
     }

@@ -179,21 +179,33 @@ extern "C" void kernelMain(const void* multiboot_structure, uint32_t multiboot_m
         
     printf("Activating Drivers\n");
     drvManager.ActivateAll();    
-/*
+    
     AdvancedTechnologyAttachment ata0m(0x1F0, true);
     printf("ATA Primary Master:\n");
     bool Ata0M = ata0m.Identify();
+    printf("--------------------------\n");
     
     AdvancedTechnologyAttachment ata0s(0x1F0, false);
     printf("ATA Primary Slave:\n");
     bool Ata0S = ata0s.Identify();
+    printf("--------------------------\n");
+
+    FatFileSystem* fat;
 
     if(Ata0M == 1) //Device Exist?
-        MSDOSPartitionTable::ReadPartitions(&ata0m);
+        fat = MSDOSPartitionTable::ReadPartitions(&ata0m);
         
     if(Ata0S == 1) //Device Exist?
-        MSDOSPartitionTable::ReadPartitions(&ata0s);
-*/
+        fat = MSDOSPartitionTable::ReadPartitions(&ata0s);
+
+    printf(fat == 0 ? (char*)"Fat Not Found\n" : (char*)"Fat Found\n");
+    if(fat != 0)
+    {
+        fat->ListRootDir();
+        uint8_t* buf = (uint8_t*) memoryManager.malloc(1024 * 1024);
+        fat->GetFile("IKOOK.TXT", buf);
+        printf((char*)buf);
+    }
 
     RTC rtc;
 

@@ -3,6 +3,7 @@
 #include <common/convert.h>
 #include <vfs/fat.h>
 #include <vfs/partitiontypes.h>
+#include <memorymanagement.h>
 
 using namespace myos;
 using namespace myos::common;
@@ -14,7 +15,7 @@ void printf(char*);
 void printfHex(uint8_t);
 void printfHex32(uint32_t);
 
-void MSDOSPartitionTable::ReadPartitions(myos::drivers::AdvancedTechnologyAttachment *hd)
+FatFileSystem* MSDOSPartitionTable::ReadPartitions(myos::drivers::AdvancedTechnologyAttachment *hd)
 {
     
     MasterBootRecord mbr;
@@ -48,8 +49,12 @@ void MSDOSPartitionTable::ReadPartitions(myos::drivers::AdvancedTechnologyAttach
         
         if(partname == "Linux" || partname == "W95 FAT32")
         {
-            FatFileSystem fat;
-            fat.Initialize(hd, mbr.primaryPartition[i].start_lba);
+            FatFileSystem* fat = (FatFileSystem*) MemoryManager::activeMemoryManager->malloc(sizeof(FatFileSystem));
+            if(fat != 0)
+                new (fat) FatFileSystem();
+
+            fat->Initialize(hd, mbr.primaryPartition[i].start_lba);
+            return fat;
         }
     }
     
