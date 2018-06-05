@@ -203,7 +203,7 @@ extern "C" void kernelMain(const void* multiboot_structure, uint32_t multiboot_m
     {
         fat->ListRootDir();
         uint8_t* buf = (uint8_t*) memoryManager.malloc(1024 * 1024);
-        fat->GetFile("IKOOK.TXT", buf);
+        fat->GetFile("GROOT.TXT", buf);
         printf((char*)buf);
     }
 

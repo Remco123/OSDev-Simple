@@ -165,6 +165,7 @@ void FatFileSystem::GetFile(char* name, uint8_t* buffer) //Only works in root di
             int32_t nextFileCluster = firstFileCluster;
             uint8_t fatbuffer[513];
             uint8_t tempbuffer[513];
+            uint32_t bytesRead;
                                   
             while(SIZE > 0)
             {
@@ -177,10 +178,10 @@ void FatFileSystem::GetFile(char* name, uint8_t* buffer) //Only works in root di
                     
                     tempbuffer[SIZE > 512 ? 512 : SIZE] = '\0';
 
-                    for(int i = 0; i < 512; i++) //Copy into the real buffer
-                    {
-                        buffer[i + (sectorOffset*512)] = tempbuffer[i];
-                    }
+                    for(int i = 0; i < (SIZE > 512 ? 512 : SIZE); i++)
+                        buffer[i + bytesRead] = tempbuffer[i];
+
+                    bytesRead += 512;
                     
                     if(++sectorOffset > sectorsPerCluster)
                         break;
