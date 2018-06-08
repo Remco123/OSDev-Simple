@@ -76,6 +76,23 @@ void trimName(char *str, size_t size) {
     }
 }
 
+void printtime(uint16_t date, uint16_t time)
+{
+    //Hour
+    printf(Convert::itoa((time & 0xFE00) >> 11)); printf(":");
+    //Minute
+    printf(Convert::itoa((time & 0x1E0) >> 5)); printf(":");
+    //Sec
+    printf(Convert::itoa((time & 0x1F) << 1)); printf(" ; ");
+
+    //Day
+    printf(Convert::itoa(date & 0x1F)); printf(":");
+    //Month
+    printf(Convert::itoa(((date & 0x1E0) >> 5))); printf(":");
+    //Year
+    printf(Convert::itoa(((date & 0xFE00) >> 9) + 1980));
+}
+
 FatFileSystem::FatFileSystem()
 {
     
@@ -98,6 +115,7 @@ void FatFileSystem::Initialize(AdvancedTechnologyAttachment *hd, uint32_t partit
     
     fatStart = partitionOffset + bpb.reservedSectors;
     fatSize = bpb.tableSize;
+    printf("Size of 1 fat: "); printf(Convert::itoa(bpb.tableSize)); printf("\n");
 
     dataStart = fatStart + fatSize*bpb.fatCopies;
 
@@ -118,11 +136,13 @@ void FatFileSystem::ListRootDir()
         
         if((dirent[i].attributes & 0x0F) == 0x0F)
             continue;
-        
+
         char* foo = "          ";
         convertFromFATFormat((char*)dirent[i].name, foo);
         
         printf(foo); printf("     Size: "); printf(Convert::itoa(dirent[i].size));
+        printf(" ");
+        //printtime(dirent[i].cDate, dirent[i].cTime);
         printf("\n");
         
         if((dirent[i].attributes & 0x10) == 0x10) // directory
@@ -165,7 +185,7 @@ void FatFileSystem::GetFile(char* name, uint8_t* buffer) //Only works in root di
             int32_t nextFileCluster = firstFileCluster;
             uint8_t fatbuffer[513];
             uint8_t tempbuffer[513];
-            uint32_t bytesRead;
+            int32_t bytesRead;
                                   
             while(SIZE > 0)
             {
@@ -178,21 +198,28 @@ void FatFileSystem::GetFile(char* name, uint8_t* buffer) //Only works in root di
                     
                     tempbuffer[SIZE > 512 ? 512 : SIZE] = '\0';
 
-                    for(int i = 0; i < (SIZE > 512 ? 512 : SIZE); i++)
-                        buffer[i + bytesRead] = tempbuffer[i];
+                    for(int i = 0; i < 512; i++)
+                    {
+                        buffer[bytesRead + i] = tempbuffer[i];
+                    }
 
-                    bytesRead += 512;
+                    printf((char*)tempbuffer);
+
+                    bytesRead += (SIZE > 512 ? 512 : SIZE);
                     
                     if(++sectorOffset > sectorsPerCluster)
                         break;
                 }
+
+                printf("Finding next cluster\n");
                 
                 uint32_t fatSectorForCurrentCluster = nextFileCluster / (512/sizeof(uint32_t));
                 hd->Read28(fatStart+fatSectorForCurrentCluster, fatbuffer, 512);
                 uint32_t fatOffsetInSectorForCurrentCluster = nextFileCluster % (512/sizeof(uint32_t));
                 nextFileCluster = ((uint32_t*)&fatbuffer)[fatOffsetInSectorForCurrentCluster] & 0x0FFFFFFF;
-                
+                printf("Next cluster: "); printf(Convert::itoa(nextFileCluster)); printf("\n");
             }
+            break;
         }
     }
 }

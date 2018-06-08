@@ -1,10 +1,12 @@
 #include <gui/bmp.h>
+#include <common/convert.h>
 
 using namespace myos;
 using namespace myos::common;
 using namespace myos::gui;
 
 void printfHex(uint8_t);
+void printf(char*);
 
 BMPImage::BMPImage(uint32_t width, uint32_t height)
 : Image(width, height){
@@ -66,9 +68,10 @@ void BMPImage::Load(uint8_t* data)
     
     this->ImageData = (uint8_t*)((unsigned int)data + offset);
 
-    /*
-    printf("Width: "); printfHex(info->biWidth);
-    printf(" Height: "); printfHex(info->biHeight);
-    printf(" BPP: "); printfHex(info->biBitCount);
-    */
+    
+    printf("Width: "); printf(Convert::itoa(info->biWidth));
+    printf(" Height: "); printf(Convert::itoa(info->biHeight));
+    printf(" BPP: "); printf(Convert::itoa(info->biBitCount));
+    printf("\n");
+    
 }

@@ -21,6 +21,7 @@
 #include <gui/bmp.h>
 #include <gui/arial.h>
 #include <gui/shell.h>
+#include <gui/tiger.h>
 #include <common/convert.h>
 #include <common/memfunc.h>
 #include <multitasking.h>
@@ -202,9 +203,13 @@ extern "C" void kernelMain(const void* multiboot_structure, uint32_t multiboot_m
     if(fat != 0)
     {
         fat->ListRootDir();
-        uint8_t* buf = (uint8_t*) memoryManager.malloc(1024 * 1024);
-        fat->GetFile("GROOT.TXT", buf);
-        printf((char*)buf);
+        uint8_t* buf = (uint8_t*) memoryManager.malloc(16392); //File is 16391 bytes
+        fat->GetFile("MEGA.TXT", buf);
+        
+        //printf((char*)buf);
+        //BMPImage bmp(100, 100);
+        //bmp.Load(buf);
+        //bmp.DrawTo(&canvas, 0, 0, 200, 200);
     }
 
     RTC rtc;
