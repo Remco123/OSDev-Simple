@@ -31,6 +31,7 @@ void Console::Write(char* str,...)
                 {
                     YOffset += 10;
                     XOffset = 0;
+                    CheckForScroll();
                 }
         }
     }

@@ -108,6 +108,15 @@ void FatFileSystem::Initialize(AdvancedTechnologyAttachment *hd, uint32_t partit
     printf("sectors per cluster: ");
     printf(Convert::itoa(bpb.sectorsPerCluster));
     printf("\n");
+
+    printf("bytes per sector: ");
+    printf(Convert::itoa(bpb.bytesPerSector));
+    printf("\n");
+
+    printf("cluster size: ");
+    printf(Convert::itoa(bpb.sectorsPerCluster * bpb.bytesPerSector));
+    printf("\n");
+
     printf("Number of fats: "); printf(Convert::itoa(bpb.fatCopies)); printf("\n");
 
     printf("Label: "); printf((char*)bpb.volumeLabel); printf("\n");
@@ -185,12 +194,14 @@ void FatFileSystem::GetFile(char* name, uint8_t* buffer) //Only works in root di
             int32_t nextFileCluster = firstFileCluster;
             uint8_t fatbuffer[513];
             uint8_t tempbuffer[513];
-            int32_t bytesRead;
+            int32_t bytesRead = 0;
                                   
             while(SIZE > 0)
             {
                 uint32_t fileSector = dataStart + sectorsPerCluster * (nextFileCluster-2);
                 int sectorOffset = 0;
+
+                printf("Reading Sector: "); printf(Convert::itoa(fileSector)); printf(" Cluster: "); printf(Convert::itoa(nextFileCluster - 2)); printf("\n");
             
                 for(; SIZE > 0; SIZE -= 512)
                 {
@@ -209,15 +220,11 @@ void FatFileSystem::GetFile(char* name, uint8_t* buffer) //Only works in root di
                     
                     if(++sectorOffset > sectorsPerCluster)
                         break;
-                }
-
-                printf("Finding next cluster\n");
-                
+                }                
                 uint32_t fatSectorForCurrentCluster = nextFileCluster / (512/sizeof(uint32_t));
                 hd->Read28(fatStart+fatSectorForCurrentCluster, fatbuffer, 512);
                 uint32_t fatOffsetInSectorForCurrentCluster = nextFileCluster % (512/sizeof(uint32_t));
                 nextFileCluster = ((uint32_t*)&fatbuffer)[fatOffsetInSectorForCurrentCluster] & 0x0FFFFFFF;
-                printf("Next cluster: "); printf(Convert::itoa(nextFileCluster)); printf("\n");
             }
             break;
         }

@@ -26,7 +26,7 @@ FatFileSystem* MSDOSPartitionTable::ReadPartitions(myos::drivers::AdvancedTechno
     if(mbr.magicnumber != 0xAA55)
     {
         printf("illegal MBR\n");
-        return;
+        return 0;
     }
     
     

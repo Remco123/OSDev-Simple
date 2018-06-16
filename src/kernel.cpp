@@ -204,7 +204,12 @@ extern "C" void kernelMain(const void* multiboot_structure, uint32_t multiboot_m
     {
         fat->ListRootDir();
         uint8_t* buf = (uint8_t*) memoryManager.malloc(16392); //File is 16391 bytes
-        fat->GetFile("MEGA.TXT", buf);
+        //fat->GetFile("EVEN.TXT", buf);
+
+        //char* bigstr = (char*) memoryManager.malloc(1200 * sizeof(char));
+        //for(int i = 0; i < 1200; i++)
+            //bigstr[i] = 'A';
+        //printf(bigstr);
         
         //printf((char*)buf);
         //BMPImage bmp(100, 100);
