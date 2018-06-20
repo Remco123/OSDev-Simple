@@ -12,6 +12,7 @@
 #include <drivers/mouse.h>
 #include <drivers/vesa/vesaheaders.h>
 #include <drivers/rtc.h>
+#include <drivers/pit.h>
 #include <vfs/ata.h>
 #include <vfs/msdospart.h>
 #include <gui/canvas.h>
@@ -125,7 +126,7 @@ void SleepSec(RTC* rtc, int sec)
 
 extern "C" void kernelMain(const void* multiboot_structure, uint32_t multiboot_magic)
 {
-    multiboot_info_t* mbi = (multiboot_info_t*)multiboot_structure;
+    multiboot_info_t* mbi = (multiboot_info_t*)multiboot_structure; 
 
     //Init the canvas for drawing to the screen.
     Canvas canvas((void*)mbi->framebuffer_addr, mbi->framebuffer_pitch, (uint32_t)mbi->framebuffer_width, (uint32_t)mbi->framebuffer_height, mbi->framebuffer_bpp);
@@ -200,27 +201,14 @@ extern "C" void kernelMain(const void* multiboot_structure, uint32_t multiboot_m
         fat = MSDOSPartitionTable::ReadPartitions(&ata0s);
 
     printf(fat == 0 ? (char*)"Fat Not Found\n" : (char*)"Fat Found\n");
-    if(fat != 0)
-    {
-        fat->ListRootDir();
-        uint8_t* buf = (uint8_t*) memoryManager.malloc(16392); //File is 16391 bytes
-        //fat->GetFile("EVEN.TXT", buf);
-
-        //char* bigstr = (char*) memoryManager.malloc(1200 * sizeof(char));
-        //for(int i = 0; i < 1200; i++)
-            //bigstr[i] = 'A';
-        //printf(bigstr);
-        
-        //printf((char*)buf);
-        //BMPImage bmp(100, 100);
-        //bmp.Load(buf);
-        //bmp.DrawTo(&canvas, 0, 0, 200, 200);
-    }
 
     RTC rtc;
 
-    printf("Testing RTL8139\n");
-    RTL8139* eth0 = (RTL8139*)(drvManager.drivers[2]);
+    printf("Loading PIT\n");
+    PIT pit(&interrupts); 
+
+    //printf("Testing RTL8139\n");
+    //RTL8139* eth0 = (RTL8139*)(drvManager.drivers[2]);
 
     printf("Activating Interrupts\n");
     interrupts.Activate(); 

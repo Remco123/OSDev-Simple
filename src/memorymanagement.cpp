@@ -1,13 +1,16 @@
 #include <memorymanagement.h>
+#include <common/convert.h>
 
 using namespace myos;
 using namespace myos::common;
 
+void printf(char*);
 
 MemoryManager* MemoryManager::activeMemoryManager = 0;
         
 MemoryManager::MemoryManager(size_t start, size_t size)
 {
+    printf("Size of memory: "); printf(Convert::itoa(size / 1024 / 1024)); printf(" MB\n");
     activeMemoryManager = this;
     
     if(size < sizeof(MemoryChunk))
