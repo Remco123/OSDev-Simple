@@ -44,7 +44,10 @@ int AdvancedTechnologyAttachment::Identify()
     devicePort.Write(0xA0);
     uint8_t status = commandPort.Read();
     if(status == 0xFF)
+    {  
+        printf("Invalid Status\n");
         return 0;
+    }
     
     devicePort.Write(master ? 0xA0 : 0xB0);
     sectorCountPort.Write(0);
@@ -66,7 +69,7 @@ int AdvancedTechnologyAttachment::Identify()
     
     if(status & 0x01)
     {
-        printf("Error reading HDD\n");
+        printf("Error reading ATA\n");
         return 0;
     }
 
@@ -87,10 +90,6 @@ int AdvancedTechnologyAttachment::Identify()
     printf("Removable: "); printf(hd_header->GeneralConfiguration.RemovableMedia == 1 ? (char*)"True\n" : (char*)"False\n");
     printf("Cillinders: "); printf(Convert::itoa(hd_header->NumCylinders)); printf("\n");
     printf("Heads: "); printf(Convert::itoa(hd_header->NumHeads)); printf("\n");
-    printf("Serial: "); 
-    for(int i = 0; i < 20; i++)
-        printfHex(hd_header->SerialNumber[i]);
-    printf("\n");
 
     printf("S.M.A.R.T: "); printf(hd_header->CommandSetActive.SmartCommands == 1 ? (char*)"True" : (char*)"False");
     printf("\n");
@@ -172,6 +171,8 @@ void AdvancedTechnologyAttachment::Write28(common::uint32_t sector, common::uint
     
     for(uint16_t i = count + (count % 2); i < bytesPerSector; i+= 2)
         dataPort.Write(0x0000);
+
+    Flush(); //Right?
 }
 
 void AdvancedTechnologyAttachment::Flush()

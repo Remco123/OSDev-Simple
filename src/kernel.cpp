@@ -22,7 +22,6 @@
 #include <gui/bmp.h>
 #include <gui/arial.h>
 #include <gui/shell.h>
-#include <gui/tiger.h>
 #include <common/convert.h>
 #include <common/memfunc.h>
 #include <multitasking.h>
@@ -36,6 +35,8 @@
 #include <net/udp.h>
 #include <net/tcp.h>
 #include <net/dhcp.h>
+
+#include <system.h>
 
 using namespace myos;
 using namespace myos::common;
@@ -181,6 +182,8 @@ extern "C" void kernelMain(const void* multiboot_structure, uint32_t multiboot_m
         
     printf("Activating Drivers\n");
     drvManager.ActivateAll();    
+
+
     
     AdvancedTechnologyAttachment ata0m(0x1F0, true);
     printf("ATA Primary Master:\n");
@@ -192,6 +195,7 @@ extern "C" void kernelMain(const void* multiboot_structure, uint32_t multiboot_m
     bool Ata0S = ata0s.Identify();
     printf("--------------------------\n");
 
+    
     FatFileSystem* fat;
 
     if(Ata0M == 1) //Device Exist?
@@ -201,8 +205,14 @@ extern "C" void kernelMain(const void* multiboot_structure, uint32_t multiboot_m
         fat = MSDOSPartitionTable::ReadPartitions(&ata0s);
 
     printf(fat == 0 ? (char*)"Fat Not Found\n" : (char*)"Fat Found\n");
+    
+    if(fat != 0)
+    {
+        fat->ListRootDir();
+    }
 
     RTC rtc;
+    
 
     printf("Loading PIT\n");
     PIT pit(&interrupts); 
@@ -213,12 +223,29 @@ extern "C" void kernelMain(const void* multiboot_structure, uint32_t multiboot_m
     printf("Activating Interrupts\n");
     interrupts.Activate(); 
 
+    printf("Beeping\n");
+    pit.Beep(500, 500);
+    pit.Beep(600, 500);
+    pit.Beep(700, 500);
+
     printf("Loading Shell\n");  
 
-    canvas.DrawFillRect(Color::Create(48, 186, 117), canvas.Width - 85, 0, 85,30);
-    arial.DrawTo(&canvas, "Remco OS\nVersie: 0.12", 10, canvas.Width - 80, 5, Color::Create(0,0,0));
+    canvas.DrawFillRect(Color::Create(48, 186, 117), canvas.Width - 85, 0, 86,30);
+    arial.DrawTo(&canvas, "Remco OS\nVersie: 0.20", 10, canvas.Width - 80, 5, Color::Create(0,0,0));
 
     Shell shell(&cons);
+
+    //Everything is done so we init the system class
+    System::canvas = &canvas;
+    System::driverManager = &drvManager;
+    System::GDT = &gdt;
+    System::interruptsManager = &interrupts;
+    System::memManager = &memoryManager;
+    System::pci = &PCIController;
+    System::pit = &pit;
+    System::rtc = &rtc;
+    System::shell = &shell;
+    System::taskManager = &taskManager;
 
     while(1)
     {

@@ -20,6 +20,14 @@ namespace myos
 
             common::uint32_t HandleInterrupt(myos::common::uint32_t esp);
             void Sleep(common::uint32_t ms);
+
+            //PCSpeaker
+            void PlaySound(common::uint32_t nFrequence);
+            void NoSound();
+
+            void Beep();
+            void Beep(common::uint32_t freq);
+            void Beep(common::uint32_t freq, common::uint32_t duration);
         };
     }
 }

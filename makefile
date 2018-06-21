@@ -42,6 +42,7 @@ objects = obj/loader.o \
           obj/net/udp.o \
           obj/net/tcp.o \
 		  obj/net/dhcp.o \
+		  obj/system.o \
           obj/kernel.o
 
 

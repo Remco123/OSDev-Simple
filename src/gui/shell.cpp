@@ -1,5 +1,7 @@
 #include <gui/shell.h>
 
+#include <system.h>
+
 
 using namespace myos;
 using namespace myos::common;
@@ -49,6 +51,16 @@ void Shell::Next()
         console->WriteLine("Jumbo");
     else if(strcmp(input, "reboot") == 1)
         reboot();
+    else if(strcmp(input, "beep") == 1)
+        System::pit->Beep(700, 250);
+    else if(strcmp(input, "time") == 1)
+    {
+        printf("Time: "); printf(Convert::itoa(System::rtc->GetHour())); printf(":"); printf(Convert::itoa(System::rtc->GetMinute())); printf(":"); printf(Convert::itoa(System::rtc->GetSecond())); printf("\n");
+    }
+    else if(strcmp(input, "date") == 1)
+    {
+        printf("Date: "); printf(Convert::itoa(System::rtc->GetYear())); printf(":"); printf(Convert::itoa(System::rtc->GetMonth())); printf(":"); printf(Convert::itoa(System::rtc->GetDay())); printf("\n");
+    }
 
     this->console->CheckForScroll();
     MemoryManager::activeMemoryManager->free(input);
