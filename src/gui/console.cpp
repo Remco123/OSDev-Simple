@@ -132,3 +132,9 @@ void Console::ScrollDown()
         }
     }
 }
+void Console::Clear()
+{
+    screen->Clear(Color::Create(200, 200, 200));
+    XOffset = 0;
+    YOffset = 0;
+}

@@ -60,6 +60,7 @@ namespace myos
 
             void CheckForScroll();
             void ScrollDown();
+            void Clear();
         };
     }
 }

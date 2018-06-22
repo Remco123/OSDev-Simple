@@ -52,10 +52,8 @@ Console* console;
 
 void printf(char* str)
 {
-    if(console){
-        console->Write(str);
-    }
-        
+    if(console)
+        console->Write(str); 
 }
 
 void printfHex(uint8_t key)
@@ -90,7 +88,7 @@ void PrintGraphicsInfo(multiboot_info_t* mbi)
     if(info->signature[0] == 'V' && info->signature[3] == 'A') //We have info about the controller right?
     {
         printf("Mode Number: 0x"); printfHex16(mbi->vbe_mode); printf("\n");
-        printf("Memory: "); printf(Convert::itoa(info->video_memory)); printf("\n");
+        printf("Memory: "); printf(Convert::itoa(info->video_memory * 64 / 1024)); printf(" MB\n");
         printf("Version: "); printfHex16(info->version); printf("\n");
         MODE_INFO* mode = (MODE_INFO*)mbi->vbe_mode_info;
         printf("PhysBase: "); printfHex32(mode->physbase); printf("\n");
@@ -105,24 +103,6 @@ extern "C" void callConstructors()
 {
     for(constructor* i = &start_ctors; i != &end_ctors; i++)
         (*i)();
-}
-
-void SleepSec(RTC* rtc, int sec)
-{
-     int StartSec = rtc->GetSecond();
-     int EndSec;
-     if (StartSec + sec > 59)
-     {
-         EndSec = 0;
-     }
-     else
-     {
-         EndSec = StartSec + sec;
-     }
-     while (rtc->GetSecond() != EndSec)
-     {
-         // Loop round
-     }
 }
 
 extern "C" void kernelMain(const void* multiboot_structure, uint32_t multiboot_magic)
@@ -184,7 +164,7 @@ extern "C" void kernelMain(const void* multiboot_structure, uint32_t multiboot_m
     drvManager.ActivateAll();    
 
 
-    
+    /*
     AdvancedTechnologyAttachment ata0m(0x1F0, true);
     printf("ATA Primary Master:\n");
     bool Ata0M = ata0m.Identify();
@@ -210,12 +190,16 @@ extern "C" void kernelMain(const void* multiboot_structure, uint32_t multiboot_m
     {
         fat->ListRootDir();
     }
+    */
 
+    printf("Loading RTC\n");
     RTC rtc;
     
-
     printf("Loading PIT\n");
     PIT pit(&interrupts); 
+
+    //printf("Loading Floppy's\n");
+    //DetectFloppyDrives();
 
     //printf("Testing RTL8139\n");
     //RTL8139* eth0 = (RTL8139*)(drvManager.drivers[2]);
@@ -224,9 +208,9 @@ extern "C" void kernelMain(const void* multiboot_structure, uint32_t multiboot_m
     interrupts.Activate(); 
 
     printf("Beeping\n");
-    pit.Beep(500, 500);
-    pit.Beep(600, 500);
-    pit.Beep(700, 500);
+    //pit.Beep(500, 500);
+    //pit.Beep(600, 500);
+    //pit.Beep(700, 500);
 
     printf("Loading Shell\n");  
 
