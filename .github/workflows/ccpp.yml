@@ -9,5 +9,7 @@ jobs:
     
     steps:
     - uses: actions/checkout@v1
+    - name: deps
+      run: sudo apt-get install nasm
     - name: make
       run: make
